@@ -1,0 +1,9 @@
+<RCC>
+    <qresource prefix="/">
+        <file>main.qml</file>
+        <file>StateMachineMainView.qml</file>
+        <file>StateItem.qml</file>
+        <file>StateSampleButton.qml</file>
+        <file>TopLevelStateItem.qml</file>
+    </qresource>
+</RCC>
