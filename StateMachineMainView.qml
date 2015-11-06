@@ -5,6 +5,10 @@ Rectangle {
     color: "#ececec"
 
     property var targetState
+    property alias draggingLayer: draggingLayer
+    property var dropTarget
+
+    signal stateItemLongTabbed(var sender, var mouse)
 
     property Component stateComponent: Component {
         StateItem{
@@ -24,39 +28,25 @@ Rectangle {
         anchors.fill: parent
     }
 
-    MouseArea {
-        id: mouseController
+    Rectangle {
+        id: draggingLayer
 
-        visible: false
         anchors.fill: parent
+        color: "transparent"
+    }
 
-        onPressAndHold: {
-            var item = stage.childAt(mouse.x, mouse.y);
-            if (item) {
-                console.log(item.label);
-
-                var pnt = item.mapFromItem(mouseController, mouse.x, mouse.y);
-
-                var obj = item.childAt(pnt.x, pnt.y);
-                if (obj) {
-                    console.log(obj.objectName);
-                    if (obj.objectName === "headerRect") {
-                        item.parent = mouseController;
-                        item.state = "dragging";
-                        drag.target = item;
-                    }
-                }
-            }
-        }
+    onStateItemLongTabbed: {
+        console.log("signal received");
+        //sender.parent = draggingLayer;
     }
 
     onTargetStateChanged: {
         if (targetState) {
             //var topState = stateComponent.createObject(stage, {"width": mainView.width, "height": mainView.height});
-            var topState = topLevelStateComponent.createObject(stage, {"target": targetState});
+            var topState = topLevelStateComponent.createObject(stage);//, {"target": targetState});
+            topState.target = targetState;
             topState.width = Qt.binding(function(){return mainView.width});
             topState.height = Qt.binding(function(){return mainView.height});
-
         }
     }
 }
