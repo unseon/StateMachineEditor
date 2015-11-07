@@ -10,6 +10,7 @@ Rectangle {
     property alias helper: helper
     property alias mouseHelper: mouseHelper
     property alias curosr: cursor
+    property alias transitionLayer: transitionLayer
 
     property Component stateMachineComponent: Component {
         StateMachineItem{
@@ -23,6 +24,12 @@ Rectangle {
         }
     }
 
+    property Component transitionComponent: Component {
+        TransitionItem {
+
+        }
+    }
+
     onTargetStateChanged: {
         if (targetState) {
             //var topState = stateComponent.createObject(stage, {"width": mainView.width, "height": mainView.height});
@@ -31,6 +38,14 @@ Rectangle {
             stateMachineItem.target = targetState;
             stateMachineItem.width = Qt.binding(function(){return mainView.width});
             stateMachineItem.height = Qt.binding(function(){return mainView.height});
+
+            stateMachineItem.buildTransitionTable();
+
+            for (var i = 0; i < stateMachineItem.transitionTable.length; i++) {
+                var transitionModel = stateMachineItem.transitionTable[i];
+                var transitionItem = transitionComponent.createObject(transitionLayer);
+                transitionItem.model = transitionModel;
+            }
         }
     }
 
@@ -43,6 +58,13 @@ Rectangle {
     Rectangle {
         id: stage
         color: "#FBFFFA"
+        anchors.fill: parent
+    }
+
+    Rectangle {
+        id: transitionLayer
+
+        color: "transparent"
         anchors.fill: parent
     }
 
@@ -128,20 +150,23 @@ Rectangle {
 
         function updateCursor(mouse) {
             var hit = getHit(mouse.x, mouse.y);
-            var stateItem = hit.parent;
 
-            // update when hit content
-            if (hit.objectName === "content") {
-                var content = hit;
+            if (hit) {
+                var stateItem = hit.parent;
 
-                cursor.visible = true;
-                cursor.currentContent = content;
+                // update when hit content
+                if (hit.objectName === "content") {
+                    var content = hit;
 
-                // calculate cursor position
-                var pos = mapToItem(content, mouse.x, mouse.y);
-                var idx = content.calcIndex(pos.x);
-                cursor.currentIndex = idx;
-                cursor.updatePosition();
+                    cursor.visible = true;
+                    cursor.currentContent = content;
+
+                    // calculate cursor position
+                    var pos = mapToItem(content, mouse.x, mouse.y);
+                    var idx = content.calcIndex(pos.x);
+                    cursor.currentIndex = idx;
+                    cursor.updatePosition();
+                }
             }
         }
 
@@ -191,6 +216,14 @@ Rectangle {
             id: cursor
 
             visible: true
+
+//            Behavior on x {
+//                NumberAnimation { duration: 100 }
+//            }
+
+//            Behavior on y {
+//                NumberAnimation { duration: 100 }
+//            }
 
             property var currentContent
             property int currentIndex

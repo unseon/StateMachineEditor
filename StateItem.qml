@@ -64,6 +64,9 @@ Rectangle {
 
         label = target.objectName;
         type = typeName(target);
+
+        stateMachineItem.stateTable.push([target, stateItem]);
+
         console.log(label + ":" + type);
 
         // clear content's children
@@ -78,7 +81,9 @@ Rectangle {
             for (var i = 0; i < target.children.length; i++) {
                 var child = target.children[i];
 
-                if (typeName(child) === "State" || typeName(child) === "FinalState") {
+                var childType = typeName(child);
+
+                if (childType === "State" || childType === "FinalState") {
                     var item = component.createObject(content);
                     //item.anchors.verticalCenter = Qt.binding(function(){return content.verticalCenter;});
                     //item.height = Qt.binding(function(){return height * 0.5;});
@@ -86,7 +91,10 @@ Rectangle {
                     //item.widthChanged.connect(childContentUpdated);
                     //item.contentUpdated.connect(content.updateLayout);
                     isGroup = true;
+                } else if (childType === "SignalTranstion" || childType === "TimeoutTransition") {
+
                 }
+
             }
 
             content.updateLayout();

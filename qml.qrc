@@ -5,9 +5,12 @@
         <file>StateItem.qml</file>
         <file>StateSampleButton.qml</file>
         <file>StateMachineItem.qml</file>
+        <file>TransitionItem.qml</file>
     </qresource>
     <qresource prefix="/images">
         <file>images/icons/minus.png</file>
         <file>images/icons/plus.png</file>
+        <file>images/triangle-down.png</file>
+        <file>images/triangle-up.png</file>
     </qresource>
 </RCC>
