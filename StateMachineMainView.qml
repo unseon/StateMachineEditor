@@ -5,7 +5,7 @@ Rectangle {
     color: "#ececec"
 
     property var targetState
-    property alias draggingLayer: draggingLayer
+    property alias helper: helper
     property var dropTarget
 
     signal stateItemLongTabbed(var sender, var mouse)
@@ -29,7 +29,7 @@ Rectangle {
     }
 
     Rectangle {
-        id: draggingLayer
+        id: helper
 
         anchors.fill: parent
         color: "transparent"
@@ -37,7 +37,7 @@ Rectangle {
 
         function showCursor(item, x, y) {
             cursor.visible = true;
-            var pos = draggingLayer.mapFromItem(item, x, y);
+            var pos = helper.mapFromItem(item, x, y);
 
             console.log('cursor pos: ' + pos + 'from ' + x + "," + y + "/item pos: " + item.x + ", " + item.y);
             cursor.x = pos.x;
@@ -59,6 +59,61 @@ Rectangle {
                 height: 5
             }
         }
+
+        MouseArea {
+            id: contentRect
+            visible: mainView.state === ""
+            anchors.fill: parent
+            propagateComposedEvents: true
+
+            hoverEnabled: true
+
+            onClicked: {
+                console.log("contentRect clicked");
+            }
+
+            onPositionChanged: {
+//                // stateMachine should be hit
+//                var item = stage.childAt(mouse.x, mouse.y);
+
+//                // find child of stateMachine rect
+//                var pos = item.mapFromItem(stage, mouse.x, mouse.y);
+//                var cItem = item.childAt(pos.x, pos.y);
+
+                var hit = hitTest(stage, mouse.x, mouse.y);
+                if (hit) {
+                    console.log("hit on " + hit.parent.label);
+                }
+            }
+
+            function hitTest(target, x, y) {
+                var item = target.childAt(x, y);
+                if (item) {
+                    var pos = item.mapFromItem(target, x, y);
+                    var childItem = item.childAt(pos.x, pos.y);
+
+                    if (childItem.objectName === "content") {
+                        var contentPos = childItem.mapFromItem(target, x, y);
+
+                        var hitItem = hitTest(childItem, contentPos.x, contentPos.y);
+
+                        if (hitItem) {
+                            return hitItem;
+                        } else {
+                            //console.log('hit content of ' + item.label);
+                            return childItem;
+                        }
+
+                    } else {
+                        //console.log('hit header of ' + item.label);
+                        return childItem;
+                    }
+                } else {
+                    return null;
+                }
+            }
+
+        }
     }
 
     onStateItemLongTabbed: {
@@ -76,5 +131,11 @@ Rectangle {
             topState.height = Qt.binding(function(){return mainView.height});
         }
     }
+
+    states: [
+        State {
+            name: "dragging"
+        }
+    ]
 }
 

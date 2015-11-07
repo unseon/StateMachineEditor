@@ -8,6 +8,12 @@ Rectangle {
 //    width: content.width
 //    height: headerRect.height + content.height
 
+    //Behavior on x { enabled: stateItem.state === ""; SpringAnimation { spring: 2; damping: 0.2 } }
+    //Behavior on width { enabled: stateItem.state === ""; SpringAnimation { spring: 2; damping: 0.2 } }
+
+
+    state: "init"
+
     signal contentUpdated
     onContentUpdated: {
         console.log(label + " onContentUpdated called / zoomed: " + zoomed);
@@ -15,7 +21,7 @@ Rectangle {
         if (!zoomed) {
             width = content.width
             height = headerRect.height + content.height
-        }
+       }
 
         if (parent.updateLayout) {
 
@@ -55,6 +61,8 @@ Rectangle {
     Drag.hotSpot.y: 10
 
     onTargetChanged: {
+        state = "init";
+
         label = target.objectName;
         console.log(label + " onTargetChanged ");
 
@@ -83,15 +91,22 @@ Rectangle {
 
             content.updateLayout();
         }
+
+        state = "";
     }
 
     Component.onCompleted: {
-        console.log(label + " completed");
+
+        console.log(label + " completed / state: " + state);
+        state = "";
     }
 
     states: [
         State {
             name: "dragging"
+        },
+        State {
+            name: "init"
         }
     ]
 
@@ -229,18 +244,6 @@ Rectangle {
             contentUpdated();
         }
 
-        function childrenContains(drag) {
-            for (var i = 0; i < children.length; i++) {
-                var child = children[i];
-                var pos = mapToItem(child, drag.x, drag.y);
-                if (child.contains(pos)) {
-                    return true;
-                }
-            }
-
-            return false;
-        }
-
         function calcIndex(posX) {
            if (children.length === 0) {
                return 0;
@@ -289,17 +292,15 @@ Rectangle {
 
             //children.splice(idx, 0, "Lene");
 
-            mainView.draggingLayer.cursor.visible = false;
+            mainView.helper.cursor.visible = false;
 
         }
 
         onPositionChanged: {
             //console.log( stateItem.label + " : contains children " + childrenContains(drag));
-            isContainedOn = !childrenContains(drag);
+            isContainedOn = childAt(drag.x, drag.y) ? false : true;
 
             if (isContainedOn) {
-
-
 
                 mainView.dropTarget = content;
 
@@ -315,7 +316,7 @@ Rectangle {
                     posY = children[idx - 1].y + children[idx - 1].height;
                 }
 
-                mainView.draggingLayer.showCursor(content, posX, posY);
+                mainView.helper.showCursor(content, posX, posY);
 
                 console.log(stateItem.label + ": " + calcIndex(drag.x) + " / content.y: " + content.y);
             }
@@ -333,7 +334,7 @@ Rectangle {
             console.log( stateItem.label + " mouse exited content.");
 
             isContainedOn = false;
-            mainView.draggingLayer.cursor.visible = false;
+            mainView.helper.cursor.visible = false;
         }
     }
 
@@ -351,22 +352,22 @@ Rectangle {
 
         onPressAndHold: {
             console.log( stateItem.label + " has long tapped.");
+            stateItem.state = "dragging";
+            mainView.state = "dragging";
+
             mainView.dropTarget = stateItem.parent;
             stateItem.parent.isContainedOn = true;
 
-            var pos = mapToItem(mainView.draggingLayer, 0, 0);
+            var pos = mapToItem(mainView.helper, 0, 0);
 
 
             originContent = stateItem.parent;
-            stateItem.parent = mainView.draggingLayer;
+            stateItem.parent = mainView.helper;
 
             stateItem.x = pos.x;
             stateItem.y = pos.y;
 
             drag.target = parent;
-
-            stateItem.state = "dragging";
-
         }
 
         onReleased: {
@@ -375,14 +376,14 @@ Rectangle {
                 drag.target = null;
 
                 mainView.dropTarget.dropItem(stateItem);
+                stateItem.state = "";
+                mainView.state = "";
 
-                if (originContent !== mainView.dropTarget) {
+                //if (originContent !== mainView.dropTarget) {
                     originContent.updateLayout();
-                }
+                //}
 
                 mainView.dropTarget.updateLayout();
-
-                stateItem.state = "";
             }
         }
     }
