@@ -17,6 +17,12 @@ Rectangle {
         }
     }
 
+    property Component stateItemComponent: Component {
+        StateItem{
+
+        }
+    }
+
     onTargetStateChanged: {
         if (targetState) {
             //var topState = stateComponent.createObject(stage, {"width": mainView.width, "height": mainView.height});
@@ -26,6 +32,12 @@ Rectangle {
             stateMachineItem.width = Qt.binding(function(){return mainView.width});
             stateMachineItem.height = Qt.binding(function(){return mainView.height});
         }
+    }
+
+    function createState() {
+        var stateItem = stateItemComponent.createObject(stage);
+        stateItem.label = "new state";
+        cursor.currentContent.insertChildAt(stateItem, cursor.currentIndex);
     }
 
     Rectangle {
@@ -136,7 +148,7 @@ Rectangle {
         function dropToContent(content) {
             var stateItem = drag.target;
 
-            content.insertChild(stateItem);
+            cursor.currentContent.insertChildAt(stateItem, cursor.currentIndex);
 
             originContainer.updateLayout();
 

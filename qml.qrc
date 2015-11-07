@@ -6,4 +6,8 @@
         <file>StateSampleButton.qml</file>
         <file>StateMachineItem.qml</file>
     </qresource>
+    <qresource prefix="/images">
+        <file>images/icons/minus.png</file>
+        <file>images/icons/plus.png</file>
+    </qresource>
 </RCC>

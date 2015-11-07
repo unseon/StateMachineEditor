@@ -22,6 +22,39 @@ ApplicationWindow {
         }
     }
 
+    toolBar: ToolBar {
+        RowLayout {
+            anchors.fill: parent
+            ToolButton {
+                action: createStateAction
+
+                Layout.fillWidth: false
+                Layout.preferredWidth: 50
+            }
+
+            ToolButton {
+                action: removeStateAction
+                Layout.fillWidth: false
+                Layout.preferredWidth: 50
+            }
+
+            Item { Layout.fillWidth: true }
+        }
+    }
+
+    Action {
+        id: removeStateAction
+        text: qsTr("Remove State");
+        iconSource: "qrc:/images/images/icons/minus.png"
+    }
+
+    Action {
+        id: createStateAction
+        text: qsTr("Insert State");
+        iconSource: "qrc:/images/images/icons/plus.png"
+        onTriggered: mainView.createState();
+    }
+
     SplitView {
         anchors.fill: parent
         orientation: Qt.Horizontal
@@ -41,6 +74,7 @@ ApplicationWindow {
         }
 
         StateMachineMainView {
+            id: mainView
             targetState: sampleButton.stateMachine
             //Layout.fillWidth: true
             color: "lightgray"

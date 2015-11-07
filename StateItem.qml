@@ -31,6 +31,7 @@ Rectangle {
 
     Component.onCompleted: {
         console.log(label + " completed / state: " + state);
+        content.updateLayout();
         state = "";
     }
 
@@ -192,17 +193,12 @@ Rectangle {
         width: 100
         height: 25
 
-        function insertChild(stateItem) {
-            var pos = content.mapFromItem(stateItem, 0, 0);
-            stateItem.x = pos.x;
-            stateItem.y = pos.y;
-
-            var idx = calcIndex(stateItem.x);
-
-            // change the secuences by using js array
+        function insertChildAt(stateItem, idx) {
+            // change the sequences by using js array
             // 1. copy the children list to array
             // 2. insert new item using splice function
             // 3. reassign the array to children
+
             var c = [];
             for (var i = 0; i < children.length; i++) {
                 c.push(children[i]);
@@ -222,6 +218,7 @@ Rectangle {
             var topMargin = 10;
             var vSpace = 10;
             var leftMargin = 20;
+            var rightMargin = 20;
             var hSpace = 10;
             var posX = leftMargin;
             var posY = topMargin;
@@ -241,7 +238,7 @@ Rectangle {
             }
 
             if (!zoomed) {
-                width = posX;
+                width = posX - hSpace + rightMargin;
                 height = posY;
             }
 
