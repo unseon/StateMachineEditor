@@ -257,7 +257,7 @@ Rectangle {
 
            for (var i = 0; i < children.length; i++) {
                var child = children[i];
-               if (posX < child.x) {
+               if (posX < child.x + child.width) {
                    return i;
                }
            }

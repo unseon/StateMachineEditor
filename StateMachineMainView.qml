@@ -39,16 +39,6 @@ Rectangle {
 
         anchors.fill: parent
         color: "transparent"
-        property alias cursor: cursor
-
-        function showCursor(item, x, y) {
-            cursor.visible = true;
-            var pos = helper.mapFromItem(item, x, y);
-
-            console.log('cursor pos: ' + pos + 'from ' + x + "," + y + "/item pos: " + item.x + ", " + item.y);
-            cursor.x = pos.x;
-            cursor.y = pos.y;
-        }
     }
 
     MouseArea {
@@ -69,9 +59,13 @@ Rectangle {
             return hitTest(stage, x, y);
         }
 
-//            onClicked: {
-//                var hit = getHit(mouse.x, mouse.y);
-//            }
+        onClicked: {
+            var hit = getHit(mouse.x, mouse.y);
+
+            if (hit.objectName === "content") {
+                updateCursor(mouse);
+            }
+        }
 
         onPressAndHold: {
             var hit = getHit(mouse.x, mouse.y);
@@ -94,6 +88,10 @@ Rectangle {
 
                 drag.target = stateItem;
                 console.log("drag: " + drag.active + "/ target: " + stateItem.label);
+
+                cursor.state = "dragging";
+
+                updateCursor(mouse);
             }
         }
 
@@ -103,15 +101,15 @@ Rectangle {
             // drop to content if possible
             if (drag.active) {
                 dropToContent(focusedContent);
+                cursor.state = "";
             }
 
             updateCursor(mouse);
         }
 
         onPositionChanged: {
-            updateCursor(mouse);
-
             if (drag.active) {
+                updateCursor(mouse);
                 focusedContent = cursor.currentContent;
             }
         }
@@ -130,21 +128,8 @@ Rectangle {
                 // calculate cursor position
                 var pos = mapToItem(content, mouse.x, mouse.y);
                 var idx = content.calcIndex(pos.x);
-                cursor.targetIndex = idx;
-
-                var localX, localY;
-                if (idx === 0) {
-                    localX = 5;
-                    localY = 5;
-                } else {
-                    localX = content.children[idx - 1].x + content.children[idx - 1].width;
-                    localY = content.children[idx - 1].y + content.children[idx - 1].height;
-                }
-
-                var worldPos = mapFromItem(content, localX, localY);
-
-                cursor.x = worldPos.x;
-                cursor.y = worldPos.y;
+                cursor.currentIndex = idx;
+                cursor.updatePosition();
             }
         }
 
@@ -193,12 +178,38 @@ Rectangle {
         Item {
             id: cursor
 
-            visible: false
+            visible: true
 
             property var currentContent
-            property int targetIndex
+            property int currentIndex
+
+            Component.onCompleted: {
+                currentContent = mainView.stateMachineItem.content;
+                currentIndex = 0;
+                updatePosition();
+            }
+
+            function updatePosition() {
+                var content = currentContent;
+                var idx = currentIndex;
+                var localX, localY;
+                if (idx === 0) {
+                    localX = 5;
+                    localY = 5;
+                } else {
+                    localX = content.children[idx - 1].x + content.children[idx - 1].width;
+                    localY = content.children[idx - 1].y + content.children[idx - 1].height;
+                }
+
+                var helperPos = mouseHelper.mapFromItem(content, localX, localY);
+
+                cursor.x = helperPos.x;
+                cursor.y = helperPos.y;
+            }
 
             Rectangle {
+                id: cursorShape
+
                 x: -2
                 y: -2
 
@@ -206,6 +217,39 @@ Rectangle {
 
                 width: 5
                 height: 5
+            }
+
+            SequentialAnimation {
+                id: blinkAnim
+                loops: Animation.Infinite
+                running: cursor.state === ""
+                NumberAnimation {
+                    target: cursor
+                    property: "opacity"
+                    from: 0.0
+                    to: 1.0
+                    duration: 150
+                }
+
+                PauseAnimation {
+                    duration: 500
+                }
+
+                NumberAnimation {
+                    target: cursor
+                    property: "opacity"
+                    from: 1.0
+                    to: 0.0
+                    duration: 150
+                }
+
+                PauseAnimation {
+                    duration: 200
+                }
+
+                onStopped: {
+                    cursor.opacity = 1.0;
+                }
             }
         }
     }
