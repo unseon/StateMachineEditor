@@ -33,6 +33,32 @@ Rectangle {
 
         anchors.fill: parent
         color: "transparent"
+        property alias cursor: cursor
+
+        function showCursor(item, x, y) {
+            cursor.visible = true;
+            var pos = draggingLayer.mapFromItem(item, x, y);
+
+            console.log('cursor pos: ' + pos + 'from ' + x + "," + y + "/item pos: " + item.x + ", " + item.y);
+            cursor.x = pos.x;
+            cursor.y = pos.y;
+        }
+
+        Item {
+            id: cursor
+
+            visible: false
+
+            Rectangle {
+                x: -2
+                y: -2
+
+                color: "red"
+
+                width: 5
+                height: 5
+            }
+        }
     }
 
     onStateItemLongTabbed: {
@@ -44,6 +70,7 @@ Rectangle {
         if (targetState) {
             //var topState = stateComponent.createObject(stage, {"width": mainView.width, "height": mainView.height});
             var topState = topLevelStateComponent.createObject(stage);//, {"target": targetState});
+            topState.zoomed = true;
             topState.target = targetState;
             topState.width = Qt.binding(function(){return mainView.width});
             topState.height = Qt.binding(function(){return mainView.height});

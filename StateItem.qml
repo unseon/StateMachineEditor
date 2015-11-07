@@ -5,14 +5,31 @@ Rectangle {
     id: stateItem
 
     radius: 10
-    width: frame.width
-    height: frame.height
+//    width: content.width
+//    height: headerRect.height + content.height
 
     signal contentUpdated
     onContentUpdated: {
+        console.log(label + " onContentUpdated called / zoomed: " + zoomed);
+
+        if (!zoomed) {
+            width = content.width
+            height = headerRect.height + content.height
+        }
+
         if (parent.updateLayout) {
 
             parent.updateLayout();
+        }
+    }
+
+    onZoomedChanged: {
+        if (zoomed) {
+            content.width = Qt.binding(function() { return width });
+            content.height = Qt.binding(function() { return height - headerRect.height });
+        } else {
+            //width = Qt.binding(function() { return content.width});
+            //height = Qt.binding(function() { return headerRect.height + content.height});
         }
     }
 
@@ -25,6 +42,7 @@ Rectangle {
     property alias content: content
 
     property bool isGroup
+    property bool zoomed: false
 
     opacity: state === "dragging" ? 0.5 : 1.0
 
@@ -78,13 +96,12 @@ Rectangle {
     ]
 
     Rectangle {
-        id: frame
+        id: shape
         x: parent.state === "dragging" ? -3 : 0
         y: parent.state === "dragging" ? -3 : 0
 
-        width: content.width
-        height: header.height + content.height
-
+        width: parent.width
+        height: parent.height
         radius: 10
 
         Rectangle {
@@ -92,8 +109,8 @@ Rectangle {
             objectName: "header"
 
             clip: true
-            width: content.width
-            height: 25
+            width: parent.width
+            height: headerRect.height
             color: "transparent"
 
             Rectangle {
@@ -125,116 +142,141 @@ Rectangle {
 
             clip: true
             y: header.height
-            width: content.width
+            width: stateItem.width
             height: parent.height - header.height
             color: "transparent"
 
             Rectangle {
+                id: bodyShape
+
                 y: -radius
                 width: parent.width
                 height: parent.height + radius
                 radius: 10
 
-                color: content.isContainedOn ? "green" : "#f9fff0"
+                color: content.isContainedOn ? "#d9efd0" : "#f9fff0"
+            }
+        }
+    }
+
+    signal headerLongTabbed(var sender, var mouse)
+
+
+    Rectangle {
+        id: borderLine
+
+        radius: parent.radius
+        anchors.fill: parent
+
+        color: "transparent"
+        border.color: "#9Ab29A"
+        border.width: 2
+
+        Rectangle {
+            y: header.height
+            width: parent.width
+            height: 2
+            border.color: parent.border.color
+            border.width: 2
+        }
+    }
+
+    DropArea {
+        id: content
+        objectName: "content"
+
+        y: headerRect.height
+
+        width: 100
+        height: 25
+        //height: parent.height
+
+        property bool isContainedOn: false
+
+        function updateLayout() {
+
+            console.log(stateItem.label + ' updateLayout called / child count:' + children.length + ' / zoomed: ' + zoomed);
+
+            // update children's position and calculate size
+            var topMargin = 10;
+            var vSpace = 10;
+            var leftMargin = 20;
+            var hSpace = 10;
+            var posX = leftMargin;
+            var posY = topMargin;
+
+            if (children.length === 0) {
+                posY = 25;
+                posX = 100;
+            } else {
+                for (var i = 0; i < children.length; i++) {
+                    var child = children[i];
+                    child.x = posX;
+                    posX += child.width + hSpace;
+
+                    child.y = posY;
+                    posY += child.height + vSpace;
+                }
             }
 
-            DropArea {
-                id: content
-                objectName: "content"
+            if (!zoomed) {
+                width = posX;
+                height = posY;
+            }
 
-                height: parent.height
+            console.log(width, height);
 
-                property bool isContainedOn: false
+            contentUpdated();
+        }
 
-                function updateLayout() {
-
-                    console.log(stateItem.label + ' updateLayout called / child count:' + children.length);
-
-                    if (children.length === 0) {
-                        content.height = 25;
-                        content.width = 100;
-                        return;
-                    }
-
-                    // update children's x position and calculate width
-                    var topMargin = 10;
-                    var vSpace = 10;
-                    var leftMargin = 20;
-                    var hSpace = 20;
-                    var posX = leftMargin;
-
-                    for (var i = 0; i < children.length; i++) {
-                        var child = children[i];
-                        child.x = posX;
-                        posX += child.width + hSpace;
-                    }
-
-                    content.width = posX;
-
-                    // update children's y position and calculate height
-                    var posY = topMargin;
-
-                    for (var i = 0; i < children.length; i++) {
-                        var child = children[i];
-                        child.y = posY;
-                        posY += child.height + vSpace;
-                    }
-
-                    content.height = posY;
-
-                    console.log(width, height);
-
-                    contentUpdated();
+        function childrenContains(drag) {
+            for (var i = 0; i < children.length; i++) {
+                var child = children[i];
+                var pos = mapToItem(child, drag.x, drag.y);
+                if (child.contains(pos)) {
+                    return true;
                 }
+            }
 
-                function childrenContains(drag) {
-                    for (var i = 0; i < children.length; i++) {
-                        var child = children[i];
-                        var pos = mapToItem(child, drag.x, drag.y);
-                        if (child.contains(pos)) {
-                            return true;
-                        }
-                    }
+            return false;
+        }
 
-                    return false;
-                }
+        function calcIndex(posX) {
+           if (children.length === 0) {
+               return 0;
+           }
 
-                function calcIndex(posX) {
-                   if (children.length === 0) {
-                       return 0;
-                   }
+           for (var i = 0; i < children.length; i++) {
+               var child = children[i];
+               if (posX < child.x) {
+                   return i;
+               }
+           }
 
-                   for (var i = 0; i < children.length; i++) {
-                       var child = children[i];
-                       if (posX < child.x) {
-                           return i;
-                       }
-                   }
+           return children.length;
+        }
 
-                   return children.length;
-                }
+        function dropItem(item) {
+            var pos = mapFromItem(item, 0, 0);
+            item.x = pos.x;
+            item.y = pos.y;
+            //item.parent = this;
 
-                function dropItem(item) {
-                    var pos = mapFromItem(item, 0, 0);
-                    item.x = pos.x;
-                    item.y = pos.y;
-                    //item.parent = this;
+            var idx = calcIndex(item.x);
 
-                    var idx = calcIndex(item.x);
+            // change the secuences by using js array
+            // 1. copy the children list to array
+            // 2. insert new item using splice function
+            // 3. reassign the array to children
+            var c = [];
+            for (var i = 0; i < children.length; i++) {
+                c.push(children[i]);
+            }
+            c.splice(idx, 0, item);
 
-                    // change the secuences by using js array
-                    // 1. copy the children list to array
-                    // 2. insert new item using splice function
-                    // 3. reassign the array to children
-                    var c = [];
-                    for (var i = 0; i < children.length; i++) {
-                        c.push(children[i]);
-                    }
-                    c.splice(idx, 0, item);
+            children = c;
 
-                    children = c;
-
-                    updateLayout();
+            updateLayout();
 
 //                    c = [];
 //                    for (var i = 0; i < children.length; i++) {
@@ -243,68 +285,64 @@ Rectangle {
 //                    console.log(c.join());
 
 
-                    //console.log(children.join());
+            //console.log(children.join());
 
-                    //children.splice(idx, 0, "Lene");
+            //children.splice(idx, 0, "Lene");
 
-                }
-
-                onPositionChanged: {
-                    //console.log( stateItem.label + " : contains children " + childrenContains(drag));
-                    isContainedOn = !childrenContains(drag);
-
-                    if (isContainedOn) {
-                        mainView.dropTarget = content;
-
-                        console.log(calcIndex(drag.x));
-                    }
-                }
-
-                onEntered: {
-                    console.log( stateItem.label + " mouse entered content.");
-                }
-
-                onDropped: {
-                    console.log( stateItem.label + " mouse dropped.");
-                }
-
-                onExited: {
-                    console.log( stateItem.label + " mouse exited content.");
-
-                    isContainedOn = false;
-                }
-            }
+            mainView.draggingLayer.cursor.visible = false;
 
         }
 
-        Rectangle {
-            id: borderLine
+        onPositionChanged: {
+            //console.log( stateItem.label + " : contains children " + childrenContains(drag));
+            isContainedOn = !childrenContains(drag);
 
-            radius: parent.radius
-            anchors.fill: parent
+            if (isContainedOn) {
 
-            color: "transparent"
-            border.color: "#9Ab29A"
-            border.width: 2
 
-            Rectangle {
-                y: header.height
-                width: parent.width
-                height: 2
-                border.color: parent.border.color
-                border.width: 2
+
+                mainView.dropTarget = content;
+
+                var idx = calcIndex(drag.x);
+
+                var posX, posY;
+
+                if (idx === 0) {
+                    posX = 0;
+                    posY = 0;
+                } else {
+                    posX = children[idx - 1].x + children[idx - 1].width;
+                    posY = children[idx - 1].y + children[idx - 1].height;
+                }
+
+                mainView.draggingLayer.showCursor(content, posX, posY);
+
+                console.log(stateItem.label + ": " + calcIndex(drag.x) + " / content.y: " + content.y);
             }
+        }
+
+        onEntered: {
+            console.log( stateItem.label + " mouse entered content.");
+        }
+
+        onDropped: {
+            console.log( stateItem.label + " mouse dropped.");
+        }
+
+        onExited: {
+            console.log( stateItem.label + " mouse exited content.");
+
+            isContainedOn = false;
+            mainView.draggingLayer.cursor.visible = false;
         }
     }
-
-    signal headerLongTabbed(var sender, var mouse)
 
     MouseArea {
         id: headerRect
         objectName: "headerRect"
 
-        width: header.width
-        height: header.height
+        width: parent.width
+        height: 25
 
         drag.target: null
         drag.axis: Drag.XAndYAxis
@@ -333,7 +371,7 @@ Rectangle {
 
         onReleased: {
             if (drag.target) {
-                console.log("onReleased on " + stateItem.dropTarget);
+                console.log("onReleased on " + mainView.dropTarget);
                 drag.target = null;
 
                 mainView.dropTarget.dropItem(stateItem);
@@ -348,5 +386,6 @@ Rectangle {
             }
         }
     }
+
 }
 

@@ -9,5 +9,9 @@ StateItem {
     onWidthChanged: {
         console.log("top level width changed: " + width );
     }
+
+    onHeightChanged: {
+        console.log("top level height changed: " + height );
+    }
 }
 
