@@ -4,6 +4,6 @@
         <file>StateMachineMainView.qml</file>
         <file>StateItem.qml</file>
         <file>StateSampleButton.qml</file>
-        <file>TopLevelStateItem.qml</file>
+        <file>StateMachineItem.qml</file>
     </qresource>
 </RCC>

@@ -5,20 +5,25 @@ Rectangle {
     color: "#ececec"
 
     property var targetState
+    property var stateMachineItem
+
     property alias helper: helper
     property alias mouseHelper: mouseHelper
 
-    signal stateItemLongTabbed(var sender, var mouse)
-
-    property Component stateComponent: Component {
-        StateItem{
+    property Component stateMachineComponent: Component {
+        StateMachineItem{
 
         }
     }
 
-    property Component topLevelStateComponent: Component {
-        TopLevelStateItem{
-
+    onTargetStateChanged: {
+        if (targetState) {
+            //var topState = stateComponent.createObject(stage, {"width": mainView.width, "height": mainView.height});
+            stateMachineItem = stateMachineComponent.createObject(stage);//, {"target": targetState});
+            stateMachineItem.zoomed = true;
+            stateMachineItem.target = targetState;
+            stateMachineItem.width = Qt.binding(function(){return mainView.width});
+            stateMachineItem.height = Qt.binding(function(){return mainView.height});
         }
     }
 
@@ -193,17 +198,6 @@ Rectangle {
                 }
             }
 
-        }
-    }
-
-    onTargetStateChanged: {
-        if (targetState) {
-            //var topState = stateComponent.createObject(stage, {"width": mainView.width, "height": mainView.height});
-            var topState = topLevelStateComponent.createObject(stage);//, {"target": targetState});
-            topState.zoomed = true;
-            topState.target = targetState;
-            topState.width = Qt.binding(function(){return mainView.width});
-            topState.height = Qt.binding(function(){return mainView.height});
         }
     }
 }
