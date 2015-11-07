@@ -30,13 +30,13 @@ Rectangle {
     property alias content: content
 
     Component.onCompleted: {
-        console.log(label + " completed / state: " + state);
+        //console.log(label + " completed / state: " + state);
         content.updateLayout();
         state = "";
     }
 
     onContentUpdated: {
-        console.log(label + " onContentUpdated called / zoomed: " + zoomed);
+        //console.log(label + " onContentUpdated called / zoomed: " + zoomed);
 
         if (!zoomed) {
             width = content.width
@@ -63,7 +63,8 @@ Rectangle {
         state = "init";
 
         label = target.objectName;
-        console.log(label + " onTargetChanged ");
+        type = typeName(target);
+        console.log(label + ":" + type);
 
         // clear content's children
         for (var i = 0; i < content.children.length; i++) {
@@ -107,6 +108,8 @@ Rectangle {
         height: parent.height
         radius: 10
 
+        clip: true
+
         Rectangle {
             id: header
             objectName: "header"
@@ -143,6 +146,7 @@ Rectangle {
             id: body
             objectName: "body"
 
+            visible: stateItem.type !== "FinalState"
             clip: true
             y: header.height
             width: stateItem.width
@@ -165,14 +169,15 @@ Rectangle {
             id: borderLine
 
             radius: parent.radius
-            anchors.fill: parent
+            width: parent.width
+            height: stateItem.type !== "FinalState" ? parent.height : parent.height + radius
 
             color: "transparent"
             border.color: mainView.mouseHelper.focusedContent === content ? "#c9dfa0" : "#9Ab29A"
             border.width: 2
 
             Rectangle {
-                y: header.height
+                y: header.height - 2
                 width: parent.width
                 height: 2
                 border.color: parent.border.color
@@ -186,6 +191,8 @@ Rectangle {
     Rectangle {
         id: content
         objectName: "content"
+
+        visible: stateItem.type !== "FinalState"
 
         y: headerRect.height
         color: "transparent"
@@ -212,7 +219,7 @@ Rectangle {
 
         function updateLayout() {
 
-            console.log(stateItem.label + ' updateLayout called / child count:' + children.length + ' / zoomed: ' + zoomed);
+            //console.log(stateItem.label + ' updateLayout called / child count:' + children.length + ' / zoomed: ' + zoomed);
 
             // update children's position and calculate size
             var topMargin = 10;
@@ -224,7 +231,13 @@ Rectangle {
             var posY = topMargin;
 
             if (children.length === 0) {
-                posY = 25;
+
+                if (stateItem.type !== "FinalState") {
+                    posY = 25;
+                } else {
+                    posY = 0;
+                }
+
                 posX = 100;
             } else {
                 for (var i = 0; i < children.length; i++) {
@@ -242,7 +255,7 @@ Rectangle {
                 height = posY;
             }
 
-            console.log(width, height);
+            //console.log(width, height);
 
             contentUpdated();
         }
@@ -268,7 +281,7 @@ Rectangle {
         objectName: "headerRect"
 
         width: parent.width
-        height: 25
+        height: stateItem.type !== "FinalState" ? 25 : 50
 
         color: "transparent"
     }
