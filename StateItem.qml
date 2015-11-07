@@ -14,7 +14,7 @@ Rectangle {
     color: "#66666666"
     opacity: state === "dragging" ? 0.35 : 1.0
 
-    state: "init"
+    state: "init" // '', 'init', 'dragging'
 
     signal contentUpdated
 
