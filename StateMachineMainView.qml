@@ -6,7 +6,7 @@ Rectangle {
 
     property var targetState
     property alias helper: helper
-    property var dropTarget
+    property alias mouseHelper: mouseHelper
 
     signal stateItemLongTabbed(var sender, var mouse)
 
@@ -61,31 +61,111 @@ Rectangle {
         }
 
         MouseArea {
-            id: contentRect
-            visible: mainView.state === ""
+            id: mouseHelper
             anchors.fill: parent
             propagateComposedEvents: true
 
             hoverEnabled: true
 
-            onClicked: {
-                console.log("contentRect clicked");
+            drag.target: null
+            drag.axis: Drag.XAndYAxis
+
+            property var focusedContent
+
+            property var originContainer
+
+            function getHit(x, y) {
+                return hitTest(stage, x, y);
             }
 
-            onPositionChanged: {
-//                // stateMachine should be hit
-//                var item = stage.childAt(mouse.x, mouse.y);
+//            onClicked: {
+//                var hit = getHit(mouse.x, mouse.y);
+//            }
 
-//                // find child of stateMachine rect
-//                var pos = item.mapFromItem(stage, mouse.x, mouse.y);
-//                var cItem = item.childAt(pos.x, pos.y);
+            onPressAndHold: {
+                var hit = getHit(mouse.x, mouse.y);
+                if (hit.objectName === "headerRect") {
+                    var stateItem = hit.parent;
+                    console.log( stateItem.label + " has long tapped.");
 
-                var hit = hitTest(stage, mouse.x, mouse.y);
-                if (hit) {
-                    console.log("hit on " + hit.parent.label);
+                    stateItem.state = "dragging";
+
+                    originContainer = stateItem.parent;
+                    focusedContent = originContainer;
+
+                    // parenting to helper
+                    var pos = hit.mapToItem(mainView.helper, 0, 0);
+                    stateItem.parent = mainView.helper;
+                    stateItem.x = pos.x;
+                    stateItem.y = pos.y;
+
+                    drag.target = stateItem;
+                    console.log("drag: " + drag.active + "/ target: " + stateItem.label);
                 }
             }
 
+            onReleased: {
+                console.log("released");
+
+                var hit = getHit(mouse.x, mouse.y);
+                var stateItem = hit.parent;
+
+                // drop to content if possible
+                if (drag.active && hit.objectName === "content") {
+                    var content = hit;
+                    dropToContent(content);
+                }
+            }
+
+            onPositionChanged: {
+                var hit = getHit(mouse.x, mouse.y);
+                var stateItem = hit.parent;
+
+                if (hit.objectName === "content") {
+                    var content = hit
+
+                    var pos = mapToItem(content, mouse.x, mouse.y);
+
+                    var idx = content.calcIndex(pos.x);
+
+                    var posX, posY;
+
+                    if (idx === 0) {
+                        posX = 0;
+                        posY = 0;
+                    } else {
+                        posX = content.children[idx - 1].x + content.children[idx - 1].width;
+                        posY = content.children[idx - 1].y + content.children[idx - 1].height;
+                    }
+
+                    mainView.helper.showCursor(content, posX, posY);
+
+                    //console.log(stateItem.label + ": " + content.calcIndex(pos.x) + " / content.y: " + content.y);
+
+                    if (drag.active) {
+                        focusedContent = content;
+                    }
+                }
+            }
+
+            function dropToContent(content) {
+                var stateItem = drag.target;
+
+                content.insertChild(drag.target);
+
+                mainView.helper.cursor.visible = false;
+
+                content.state = "";
+                drag.target.state = "";
+
+                drag.target = null;
+
+                originContainer.updateLayout();
+
+                focusedContent = null;
+            }
+
+            // return hitted content or headerRect
             function hitTest(target, x, y) {
                 var item = target.childAt(x, y);
                 if (item) {
@@ -116,11 +196,6 @@ Rectangle {
         }
     }
 
-    onStateItemLongTabbed: {
-        console.log("signal received");
-        //sender.parent = draggingLayer;
-    }
-
     onTargetStateChanged: {
         if (targetState) {
             //var topState = stateComponent.createObject(stage, {"width": mainView.width, "height": mainView.height});
@@ -131,11 +206,5 @@ Rectangle {
             topState.height = Qt.binding(function(){return mainView.height});
         }
     }
-
-    states: [
-        State {
-            name: "dragging"
-        }
-    ]
 }
 

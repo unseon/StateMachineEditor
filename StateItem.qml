@@ -11,10 +11,29 @@ Rectangle {
     //Behavior on x { enabled: stateItem.state === ""; SpringAnimation { spring: 2; damping: 0.2 } }
     //Behavior on width { enabled: stateItem.state === ""; SpringAnimation { spring: 2; damping: 0.2 } }
 
+    color: "#66666666"
+    opacity: state === "dragging" ? 0.35 : 1.0
 
     state: "init"
 
     signal contentUpdated
+
+    property var target
+
+    property string label: "untitled"
+    property string type: "state"
+
+    property bool isGroup
+    property bool zoomed: false
+
+    property alias header: header
+    property alias content: content
+
+    Component.onCompleted: {
+        console.log(label + " completed / state: " + state);
+        state = "";
+    }
+
     onContentUpdated: {
         console.log(label + " onContentUpdated called / zoomed: " + zoomed);
 
@@ -38,27 +57,6 @@ Rectangle {
             //height = Qt.binding(function() { return headerRect.height + content.height});
         }
     }
-
-    property var target
-
-    property string label: "untitled"
-    property string type: "state"
-
-    property alias header: header
-    property alias content: content
-
-    property bool isGroup
-    property bool zoomed: false
-
-    opacity: state === "dragging" ? 0.5 : 1.0
-
-    function typeName(obj) {
-        return obj.toString().split("(")[0];
-    }
-
-    Drag.active: headerRect.drag.active
-    Drag.hotSpot.x: 10
-    Drag.hotSpot.y: 10
 
     onTargetChanged: {
         state = "init";
@@ -95,20 +93,9 @@ Rectangle {
         state = "";
     }
 
-    Component.onCompleted: {
-
-        console.log(label + " completed / state: " + state);
-        state = "";
+    function typeName(obj) {
+        return obj.toString().split("(")[0];
     }
-
-    states: [
-        State {
-            name: "dragging"
-        },
-        State {
-            name: "init"
-        }
-    ]
 
     Rectangle {
         id: shape
@@ -169,44 +156,63 @@ Rectangle {
                 height: parent.height + radius
                 radius: 10
 
-                color: content.isContainedOn ? "#d9efd0" : "#f9fff0"
+                color: mainView.mouseHelper.focusedContent === content ? "#e9ffe0" : "#f9fff0"
             }
         }
-    }
-
-    signal headerLongTabbed(var sender, var mouse)
-
-
-    Rectangle {
-        id: borderLine
-
-        radius: parent.radius
-        anchors.fill: parent
-
-        color: "transparent"
-        border.color: "#9Ab29A"
-        border.width: 2
 
         Rectangle {
-            y: header.height
-            width: parent.width
-            height: 2
-            border.color: parent.border.color
+            id: borderLine
+
+            radius: parent.radius
+            anchors.fill: parent
+
+            color: "transparent"
+            border.color: mainView.mouseHelper.focusedContent === content ? "#c9dfa0" : "#9Ab29A"
             border.width: 2
+
+            Rectangle {
+                y: header.height
+                width: parent.width
+                height: 2
+                border.color: parent.border.color
+                border.width: 2
+            }
         }
+
+
     }
 
-    DropArea {
+    Rectangle {
         id: content
         objectName: "content"
 
         y: headerRect.height
+        color: "transparent"
 
         width: 100
         height: 25
-        //height: parent.height
 
-        property bool isContainedOn: false
+        function insertChild(stateItem) {
+            var pos = content.mapFromItem(stateItem, 0, 0);
+            stateItem.x = pos.x;
+            stateItem.y = pos.y;
+
+            var idx = calcIndex(stateItem.x);
+
+            // change the secuences by using js array
+            // 1. copy the children list to array
+            // 2. insert new item using splice function
+            // 3. reassign the array to children
+            var c = [];
+            for (var i = 0; i < children.length; i++) {
+                c.push(children[i]);
+            }
+            c.splice(idx, 0, stateItem);
+
+            children = c;
+
+            updateLayout();
+        }
 
         function updateLayout() {
 
@@ -258,134 +264,16 @@ Rectangle {
 
            return children.length;
         }
-
-        function dropItem(item) {
-            var pos = mapFromItem(item, 0, 0);
-            item.x = pos.x;
-            item.y = pos.y;
-            //item.parent = this;
-
-            var idx = calcIndex(item.x);
-
-            // change the secuences by using js array
-            // 1. copy the children list to array
-            // 2. insert new item using splice function
-            // 3. reassign the array to children
-            var c = [];
-            for (var i = 0; i < children.length; i++) {
-                c.push(children[i]);
-            }
-            c.splice(idx, 0, item);
-
-            children = c;
-
-            updateLayout();
-
-//                    c = [];
-//                    for (var i = 0; i < children.length; i++) {
-//                        c.push(children[i].label);
-//                    }
-//                    console.log(c.join());
-
-
-            //console.log(children.join());
-
-            //children.splice(idx, 0, "Lene");
-
-            mainView.helper.cursor.visible = false;
-
-        }
-
-        onPositionChanged: {
-            //console.log( stateItem.label + " : contains children " + childrenContains(drag));
-            isContainedOn = childAt(drag.x, drag.y) ? false : true;
-
-            if (isContainedOn) {
-
-                mainView.dropTarget = content;
-
-                var idx = calcIndex(drag.x);
-
-                var posX, posY;
-
-                if (idx === 0) {
-                    posX = 0;
-                    posY = 0;
-                } else {
-                    posX = children[idx - 1].x + children[idx - 1].width;
-                    posY = children[idx - 1].y + children[idx - 1].height;
-                }
-
-                mainView.helper.showCursor(content, posX, posY);
-
-                console.log(stateItem.label + ": " + calcIndex(drag.x) + " / content.y: " + content.y);
-            }
-        }
-
-        onEntered: {
-            console.log( stateItem.label + " mouse entered content.");
-        }
-
-        onDropped: {
-            console.log( stateItem.label + " mouse dropped.");
-        }
-
-        onExited: {
-            console.log( stateItem.label + " mouse exited content.");
-
-            isContainedOn = false;
-            mainView.helper.cursor.visible = false;
-        }
     }
 
-    MouseArea {
+    Rectangle {
         id: headerRect
         objectName: "headerRect"
 
         width: parent.width
         height: 25
 
-        drag.target: null
-        drag.axis: Drag.XAndYAxis
-
-        property var originContent
-
-        onPressAndHold: {
-            console.log( stateItem.label + " has long tapped.");
-            stateItem.state = "dragging";
-            mainView.state = "dragging";
-
-            mainView.dropTarget = stateItem.parent;
-            stateItem.parent.isContainedOn = true;
-
-            var pos = mapToItem(mainView.helper, 0, 0);
-
-
-            originContent = stateItem.parent;
-            stateItem.parent = mainView.helper;
-
-            stateItem.x = pos.x;
-            stateItem.y = pos.y;
-
-            drag.target = parent;
-        }
-
-        onReleased: {
-            if (drag.target) {
-                console.log("onReleased on " + mainView.dropTarget);
-                drag.target = null;
-
-                mainView.dropTarget.dropItem(stateItem);
-                stateItem.state = "";
-                mainView.state = "";
-
-                //if (originContent !== mainView.dropTarget) {
-                    originContent.updateLayout();
-                //}
-
-                mainView.dropTarget.updateLayout();
-            }
-        }
+        color: "transparent"
     }
 
 }
