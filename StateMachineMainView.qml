@@ -46,6 +46,8 @@ Rectangle {
                 var transitionItem = transitionComponent.createObject(transitionLayer);
                 transitionItem.model = transitionModel;
             }
+
+            updateLayout();
         }
     }
 
@@ -53,6 +55,17 @@ Rectangle {
         var stateItem = stateItemComponent.createObject(stage);
         stateItem.label = "new state";
         cursor.currentContent.insertChildAt(stateItem, cursor.currentIndex);
+
+        updateLayout();
+    }
+
+    function updateLayout() {
+        stateMachineItem.updateLayout();
+
+        for (var i = 0; i < transitionLayer.children.length; i++) {
+            var transitionItem = transitionLayer.children[i];
+            transitionItem.update();
+        }
     }
 
     Rectangle {
@@ -64,6 +77,7 @@ Rectangle {
     Rectangle {
         id: transitionLayer
 
+        opacity: mainView.state === "dragging" ? 0.2 : 1.0
         color: "transparent"
         anchors.fill: parent
     }
@@ -124,6 +138,7 @@ Rectangle {
                 console.log("drag: " + drag.active + "/ target: " + stateItem.label);
 
                 cursor.state = "dragging";
+                mainView.state = "dragging";
 
                 updateCursor(mouse);
             }
@@ -135,7 +150,9 @@ Rectangle {
             // drop to content if possible
             if (drag.active) {
                 dropToContent(focusedContent);
+                updateLayout();
                 cursor.state = "";
+                mainView.state = "";
             }
 
             updateCursor(mouse);

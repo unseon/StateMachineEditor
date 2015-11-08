@@ -7,23 +7,30 @@ Item {
     property var from
     property var to
 
+    property bool isForward
+
     onModelChanged: {
         from = stateMachineItem.getItemFromModel(model.sourceState);
         to = stateMachineItem.getItemFromModel(model.targetState);
+    }
 
+    function update() {
         var posFrom = mainView.transitionLayer.mapFromItem(from, 0, 0);
         var posTo = mainView.transitionLayer.mapFromItem(to, 0, 0);
 
         if (from.x < to.x) {
-            x = posFrom.x + from.width;
-            y = posFrom.y + 35;
-            width = posTo.x + to.width * 1 / 3 - x;
-            height = posTo.y - y;
+            x = posFrom.x + from.width / 2 + 10;
+            y = posFrom.y + from.height;
+            width = posTo.x - x;
+            height = posTo.y + 15 - y;
+
+            isForward = true;
         } else {
-            x = posTo.x + to.width;
-            y = posTo.y + 12;
-            width = posFrom.x + from.width * 2 / 3 - x;
-            height = posFrom.y - y;
+            x = posTo.x + to.width / 2 - 10;
+            y = posTo.y + to.height;
+            width = posFrom.x - x;
+            height = posFrom.y + 37 - y;
+            isForward = false;
         }
     }
 
@@ -44,7 +51,6 @@ Item {
 //    }
 
     Rectangle {
-
         width: parent.width + 1
         height: parent.height
 
@@ -52,7 +58,7 @@ Item {
         color: "transparent"
 
         Rectangle {
-            x: - radius
+            y: - radius
 
             width: transitionItem.width + radius
             height: transitionItem.height + radius
@@ -60,16 +66,36 @@ Item {
 
             color: "transparent"
             border.width: 2
+            border.color: "#39a276"
         }
     }
 
     Image {
+        id: triangleDown
+
+        visible: parent.isForward
+
         x: parent.width - width / 2 - 2
-        y: parent.height - height * 2 / 3
+        y: parent.height - height * 2 / 3 + 3
 
         width: 20
         height: 20
-        source: "qrc:/images/images/triangle-down.png"
+        source: "qrc:/images/images/triangle-right.png"
+
+        fillMode: Image.PreserveAspectFit
+    }
+
+    Image {
+        id: triangleUp
+
+        visible: !parent.isForward
+
+        x: -width / 2
+        y: -height * 2 / 3 + 7
+
+        width: 20
+        height: 20
+        source: "qrc:/images/images/triangle-up.png"
 
         fillMode: Image.PreserveAspectFit
     }

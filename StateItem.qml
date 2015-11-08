@@ -12,7 +12,7 @@ Rectangle {
     //Behavior on width { enabled: stateItem.state === ""; SpringAnimation { spring: 2; damping: 0.2 } }
 
     color: "#66666666"
-    opacity: state === "dragging" ? 0.35 : 1.0
+    opacity: state === "dragging" ? 0.15 : 1.0
 
     state: "init" // '', 'init', 'dragging'
 
@@ -31,7 +31,7 @@ Rectangle {
 
     Component.onCompleted: {
         //console.log(label + " completed / state: " + state);
-        content.updateLayout();
+        //content.updateLayout();
         state = "";
     }
 
@@ -43,10 +43,19 @@ Rectangle {
             height = headerRect.height + content.height
        }
 
-        if (parent.updateLayout) {
+//        if (parent.updateLayout) {
 
-            parent.updateLayout();
-        }
+//            parent.updateLayout();
+//        }
+    }
+
+    function updateLayout() {
+        content.updateLayout();
+
+        if (!zoomed) {
+            width = content.width
+            height = headerRect.height + content.height
+       }
     }
 
     onZoomedChanged: {
@@ -97,7 +106,7 @@ Rectangle {
 
             }
 
-            content.updateLayout();
+            //content.updateLayout();
         }
 
         state = "";
@@ -221,8 +230,6 @@ Rectangle {
             c.splice(idx, 0, stateItem);
 
             children = c;
-
-            updateLayout();
         }
 
         function updateLayout() {
@@ -250,6 +257,8 @@ Rectangle {
             } else {
                 for (var i = 0; i < children.length; i++) {
                     var child = children[i];
+                    child.updateLayout();
+
                     child.x = posX;
                     posX += child.width + hSpace;
 
@@ -265,7 +274,7 @@ Rectangle {
 
             //console.log(width, height);
 
-            contentUpdated();
+            //contentUpdated();
         }
 
         function calcIndex(posX) {
