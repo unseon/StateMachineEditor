@@ -10,8 +10,8 @@ Item {
     property bool isForward
 
     onModelChanged: {
-        from = stateMachineItem.getItemFromModel(model.sourceState);
-        to = stateMachineItem.getItemFromModel(model.targetState);
+        from = mainView.getStateItemFromModel(model.sourceState);
+        to = mainView.getStateItemFromModel(model.targetState);
     }
 
     function update() {
@@ -19,14 +19,14 @@ Item {
         var posTo = mainView.transitionLayer.mapFromItem(to, 0, 0);
 
         if (from.x < to.x) {
-            x = posFrom.x + from.width / 2 + 10;
+            x = posFrom.x + from.width - 33;
             y = posFrom.y + from.height;
             width = posTo.x - x;
             height = posTo.y + 15 - y;
 
             isForward = true;
         } else {
-            x = posTo.x + to.width / 2 - 10;
+            x = posTo.x + 33;
             y = posTo.y + to.height;
             width = posFrom.x - x;
             height = posFrom.y + 37 - y;
@@ -62,7 +62,7 @@ Item {
 
             width: transitionItem.width + radius
             height: transitionItem.height + radius
-            radius: 10
+            radius: 20
 
             color: "transparent"
             border.width: 2

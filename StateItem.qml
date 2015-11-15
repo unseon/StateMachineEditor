@@ -8,13 +8,26 @@ Rectangle {
 //    width: content.width
 //    height: headerRect.height + content.height
 
-    //Behavior on x { enabled: stateItem.state === ""; SpringAnimation { spring: 2; damping: 0.2 } }
-    //Behavior on width { enabled: stateItem.state === ""; SpringAnimation { spring: 2; damping: 0.2 } }
+    //Behavior on x { enabled: stateItem.state === ""; NumberAnimation {} }
+    //Behavior on y { enabled: stateItem.state === ""; NumberAnimation {} }
 
     color: "#66666666"
     opacity: state === "dragging" ? 0.15 : 1.0
 
-    state: "init" // '', 'init', 'dragging'
+    state: "init" // '', 'init', 'dragging', 'rename'
+
+    states: [
+        State {
+            name: ""
+            ParentChange { target: labelRect; parent: header}
+            PropertyChanges { target: labelEdit; readOnly: true }
+        },
+        State {
+            name: "rename"
+            ParentChange { target: labelRect; parent: mainView.mouseHelper}
+            PropertyChanges { target: labelEdit; readOnly: false }
+        }
+    ]
 
     signal contentUpdated
 
@@ -23,11 +36,19 @@ Rectangle {
     property string label: "untitled"
     property string type: "state"
 
+    property alias labelEdit: labelEdit
+
     property bool isGroup
     property bool zoomed: false
+    property bool selected: mainView.selectedItems === this
+    property bool draggingFocused: mainView.mouseHelper.focusedContent === content
 
     property alias header: header
     property alias content: content
+
+    property bool isInitialState: parent && parent.children[0] === this
+
+    property var transitions: []
 
     Component.onCompleted: {
         //console.log(label + " completed / state: " + state);
@@ -69,12 +90,18 @@ Rectangle {
     }
 
     onTargetChanged: {
+        if (target === null) {
+            return;
+        }
+
         state = "init";
 
         label = target.objectName;
         type = typeName(target);
 
-        stateMachineItem.stateTable.push([target, stateItem]);
+        transitions = [];
+
+        mainView.stateTable.push([target, stateItem]);
 
         console.log(label + ":" + type);
 
@@ -101,12 +128,9 @@ Rectangle {
                     //item.contentUpdated.connect(content.updateLayout);
                     isGroup = true;
                 } else if (childType === "SignalTranstion" || childType === "TimeoutTransition") {
-
+                    transitions.push(child);
                 }
-
             }
-
-            //content.updateLayout();
         }
 
         state = "";
@@ -125,6 +149,8 @@ Rectangle {
         height: parent.height
         radius: 10
 
+        //Behavior on width { enabled: stateItem.state === ""; NumberAnimation {} }
+
         clip: true
 
         Rectangle {
@@ -137,24 +163,29 @@ Rectangle {
             color: "transparent"
 
             Rectangle {
+                id: headerBackground
                 width: parent.width
-                height: parent.height + radius
-                radius: 10
+                height: parent.height + radius + 2
+                radius: stateItem.isInitialState ? 0 : 10
 
                 color: "#CCEEAA"
+                border.width: 2
+                border.color: stateItem.draggingFocused ? "#c9dfa0" : ( stateItem.selected ? "#40af30" : "#9Ab29A" )
+            }
 
-                Rectangle {
-                    id: labelRect
-                    width: parent.width
-                    height: parent.height - parent.radius
-                    color: "transparent"
+            Rectangle {
+                id: labelRect
+                width: header.width
+                height: header.height
+                color: "transparent"
 
-                    Text {
-                        anchors.fill: parent
-                        horizontalAlignment: Text.AlignHCenter
-                        verticalAlignment: Text.AlignVCenter
-                        text: stateItem.label
-                    }
+                TextInput {
+                    id: labelEdit
+
+                    anchors.fill: parent
+                    horizontalAlignment: Text.AlignHCenter
+                    verticalAlignment: Text.AlignVCenter
+                    text: stateItem.label
                 }
             }
         }
@@ -178,29 +209,40 @@ Rectangle {
                 height: parent.height + radius
                 radius: 10
 
-                color: mainView.mouseHelper.focusedContent === content ? "#e9ffe0" : "#f9fff0"
+                color: stateItem.draggingFocused ? "#e9ffe0" : ( stateItem.selected ? "#e9ffa0" : "#f9fff0")
+
+                border.color: stateItem.draggingFocused ? "#c9dfa0" : ( stateItem.selected ? "#40af30" : "#9Ab29A" )
+                border.width: 2
             }
-        }
-
-        Rectangle {
-            id: borderLine
-
-            radius: parent.radius
-            width: parent.width
-            height: stateItem.type !== "FinalState" ? parent.height : parent.height + radius
-
-            color: "transparent"
-            border.color: mainView.mouseHelper.focusedContent === content ? "#c9dfa0" : "#9Ab29A"
-            border.width: 2
 
             Rectangle {
-                y: header.height - 2
+                y: 0
                 width: parent.width
                 height: 2
-                border.color: parent.border.color
+                border.color: bodyShape.border.color
                 border.width: 2
             }
         }
+
+//        Rectangle {
+//            id: borderLine
+
+//            radius: parent.radius
+//            width: parent.width
+//            height: stateItem.type !== "FinalState" ? parent.height : parent.height + radius
+
+//            color: "transparent"
+//            border.color: stateItem.draggingFocused ? "#c9dfa0" : ( stateItem.selected ? "#40af30" : "#9Ab29A" )
+//            border.width: 2
+
+//            Rectangle {
+//                y: header.height - 2
+//                width: parent.width
+//                height: 2
+//                border.color: parent.border.color
+//                border.width: 2
+//            }
+//        }
 
 
     }
@@ -228,6 +270,20 @@ Rectangle {
                 c.push(children[i]);
             }
             c.splice(idx, 0, stateItem);
+
+            children = c;
+        }
+
+        function removeChild(childStateItem) {
+
+
+            var c = [];
+            for (var i = 0; i < children.length; i++) {
+                c.push(children[i]);
+            }
+
+            var idx = c.indexOf(childStateItem);
+            c.splice(idx, 1);
 
             children = c;
         }

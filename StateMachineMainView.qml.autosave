@@ -226,10 +226,8 @@ Rectangle {
                     mainView.selectedItems = stateItem;
                     mainView.state = "rename";
                     mainView.selectedItems.state = "rename";
-                    stateItem.labelEdit.moveCursorSelection(0, TextInput.SelectCharacters);
                     stateItem.labelEdit.selectAll();
                     stateItem.labelEdit.focus = true;
-
                     updateCursor(mouse);
                     cursor.visible = false;
 

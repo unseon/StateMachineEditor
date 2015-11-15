@@ -1,5 +1,6 @@
 import QtQuick 2.5
 import QtQuick.Controls 1.4
+import QtQuick.Controls.Styles 1.4
 import QtQuick.Layouts 1.1
 
 ApplicationWindow {
@@ -46,6 +47,7 @@ ApplicationWindow {
         id: removeStateAction
         text: qsTr("Remove State");
         iconSource: "qrc:/images/images/icons/minus.png"
+        onTriggered: mainView.removeState();
     }
 
     Action {
@@ -53,6 +55,30 @@ ApplicationWindow {
         text: qsTr("Insert State");
         iconSource: "qrc:/images/images/icons/plus.png"
         onTriggered: mainView.createState();
+    }
+
+    Menu {
+        id: contextMenu
+        title: "Edit"
+
+        MenuItem {
+            action: createStateAction
+            visible: mainView.selectedItems === null
+        }
+
+        MenuItem {
+            text: "Rename"
+            visible: mainView.selectedItems !== null
+        }
+
+        MenuItem {
+            action: removeStateAction
+            visible: mainView.selectedItems !== null
+        }
+
+        MenuItem {
+            text: "Change Type"
+        }
     }
 
     SplitView {
@@ -75,9 +101,13 @@ ApplicationWindow {
 
         StateMachineMainView {
             id: mainView
-            targetState: sampleButton.stateMachine
+            //targetState: sampleButton.stateMachine
             //Layout.fillWidth: true
             color: "lightgray"
+
+            Component.onCompleted: {
+                targetState = sampleButton.stateMachine;
+            }
         }
     }
 }

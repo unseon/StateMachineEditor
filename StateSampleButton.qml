@@ -10,6 +10,9 @@ Rectangle {
         objectName: "stateMachine"
         initialState: state
         running: true
+
+        property alias finalState: finalState
+
         DSM.State {
             id: state
             objectName: "state"
