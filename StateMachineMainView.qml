@@ -7,7 +7,8 @@ Rectangle {
 
     property var targetState: null
     property var stateMachineItem: null
-    property var selectedItems: null
+    property var selectedItem: null
+    property var selectedItems: []
 
     property alias helper: helper
     property alias mouseHelper: mouseHelper
@@ -15,6 +16,40 @@ Rectangle {
     property alias transitionLayer: transitionLayer
 
     property var stateTable: [] // [stateModel, stateItem]
+
+    onSelectedItemChanged: {
+        if (selectedItem === null) {
+            selectedItems = [];
+        } else {
+            selectedItems = [];
+            selectedItems.push(selectedItem);
+            selectedItem.selected = true;
+        }
+    }
+
+    onSelectedItemsChanged: {
+        console.log("onSelectedItemsChanged");
+    }
+
+    function addSelectionItem(stateItem) {
+        selectedItems.push(stateItem);
+        stateItem.selected = true;
+    }
+
+    function clearSelection(stateItem) {
+        if (!stateItem) {
+            stateItem = mainView.stateMachineItem;
+            selectedItem = null;
+            selectedItems = [];
+        }
+
+        stateItem.selected = false;
+
+        for (var i = 0; i < stateItem.content.children.length; i++) {
+            var childItem = stateItem.content.children[i];
+            clearSelection(childItem);
+        }
+    }
 
     function removeTransitionsConnected(stateItem) {
         var newTransitionList = [];
@@ -123,8 +158,16 @@ Rectangle {
     function removeState() {
         //stateMachineItem.removeState(selectedItems.target);
 
-        removeTransitionsConnected(selectedItems);
-        selectedItems.parent.removeChild(selectedItems);
+        removeTransitionsConnected(selectedItem);
+        selectedItem.parent.removeChild(selectedItem);
+
+        updateLayout();
+    }
+
+    function createTransition() {
+        var transitionItem = transitionComponent.createObject(transitionLayer);
+        transitionItem.from = mainView.selectedItems[0];
+        transitionItem.to = mainView.selectedItems[1];
 
         updateLayout();
     }
@@ -183,9 +226,9 @@ Rectangle {
         onPressed: {
             if (mainView.state === "rename") {
                 mainView.state = "";
-                mainView.selectedItems.labelEdit.deselect();
-                mainView.selectedItems.state = "";
-                mainView.selectedItems = null;
+                mainView.selectedItem.labelEdit.deselect();
+                mainView.selectedItem.state = "";
+                mainView.clearSelection();
 
                 updateCursor(mouse);
                 cursor.visible = false;
@@ -198,7 +241,8 @@ Rectangle {
 
                 if (hit.objectName === "headerRect") {
                    var stateItem = hit.parent;
-                   mainView.selectedItems = stateItem;
+                   mainView.clearSelection();
+                   mainView.selectedItem = stateItem;
                    updateCursor(mouse);
                    cursor.visible = false;
 
@@ -206,7 +250,7 @@ Rectangle {
 
                 } else if (hit.objectName === "content") {
                     updateCursor(mouse);
-                    mainView.selectedItems = null;
+                    mainView.clearSelection();
                     contextMenu.popup();
                 }
             }
@@ -223,9 +267,9 @@ Rectangle {
                     console.log("double clicked");
 
                     var stateItem = hit.parent;
-                    mainView.selectedItems = stateItem;
+                    mainView.selectedItem = stateItem;
                     mainView.state = "rename";
-                    mainView.selectedItems.state = "rename";
+                    mainView.selectedItem.state = "rename";
                     stateItem.labelEdit.moveCursorSelection(0, TextInput.SelectCharacters);
                     stateItem.labelEdit.selectAll();
                     stateItem.labelEdit.focus = true;
@@ -240,15 +284,37 @@ Rectangle {
         }
 
         onClicked: {
-            if (mouse.button === Qt.LeftButton) {
+            if (mouse.button === Qt.LeftButton && mouse.modifiers & Qt.ShiftModifier) {
                 var hit = getHit(mouse.x, mouse.y);
 
                 if (hit.objectName === "content") {
                     updateCursor(mouse);
-                    mainView.selectedItems = null;
+                    //mainView.selectedItem = null;
                 } else if (hit.objectName === "headerRect") {
                     var stateItem = hit.parent;
-                    mainView.selectedItems = stateItem;
+                    if (mainView.selectedItem === null) {
+                        mainView.clearSelection();
+                        mainView.selectedItem = stateItem;
+                    } else {
+                        mainView.addSelectionItem(stateItem);
+
+                        console.log(mainView.selectedItems);
+                        console.log(mainView.selectedItems.indexOf(stateItem));
+                    }
+
+                    updateCursor(mouse);
+                    cursor.visible = false;
+                }
+            } else if (mouse.button === Qt.LeftButton) {
+                var hit = getHit(mouse.x, mouse.y);
+
+                if (hit.objectName === "content") {
+                    updateCursor(mouse);
+                    mainView.clearSelection();
+                } else if (hit.objectName === "headerRect") {
+                    var stateItem = hit.parent;
+                    mainView.clearSelection();
+                    mainView.selectedItem = stateItem;
                     updateCursor(mouse);
                     cursor.visible = false;
                 }

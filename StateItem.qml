@@ -40,7 +40,7 @@ Rectangle {
 
     property bool isGroup
     property bool zoomed: false
-    property bool selected: mainView.selectedItems === this
+    property bool selected: false
     property bool draggingFocused: mainView.mouseHelper.focusedContent === content
 
     property alias header: header

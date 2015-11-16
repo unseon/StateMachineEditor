@@ -39,6 +39,16 @@ ApplicationWindow {
                 Layout.preferredWidth: 50
             }
 
+
+
+            ToolButton {
+                action: createTransitionAction
+
+                Layout.fillWidth: false
+                Layout.preferredWidth: 50
+            }
+
+
             Item { Layout.fillWidth: true }
         }
     }
@@ -57,23 +67,30 @@ ApplicationWindow {
         onTriggered: mainView.createState();
     }
 
+    Action {
+        id: createTransitionAction
+        text: qsTr("Create Transition");
+        iconSource: "qrc:/images/images/icons/plus.png"
+        onTriggered: mainView.createTransition();
+    }
+
     Menu {
         id: contextMenu
         title: "Edit"
 
         MenuItem {
             action: createStateAction
-            visible: mainView.selectedItems === null
+            visible: mainView.selectedItem === null
         }
 
         MenuItem {
             text: "Rename"
-            visible: mainView.selectedItems !== null
+            visible: mainView.selectedItem !== null
         }
 
         MenuItem {
             action: removeStateAction
-            visible: mainView.selectedItems !== null
+            visible: mainView.selectedItem !== null
         }
 
         MenuItem {
