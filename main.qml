@@ -39,15 +39,12 @@ ApplicationWindow {
                 Layout.preferredWidth: 50
             }
 
-
-
             ToolButton {
                 action: createTransitionAction
 
                 Layout.fillWidth: false
                 Layout.preferredWidth: 50
             }
-
 
             Item { Layout.fillWidth: true }
         }

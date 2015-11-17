@@ -256,6 +256,16 @@ Rectangle {
             }
         }
 
+        function transitionHitTest(mouseX, mouseY) {
+            for (var i = 0; i < transitionLayer.children.length; i++) {
+                var transitionItem = transitionLayer.children[i];
+                var pos = mapToItem(transitionItem, mouseX, mouseY);
+                console.log(pos);
+                var result = transitionItem.hitTest(pos.x, pos.y);
+                console.log("transtion hit : " + result);
+            }
+        }
+
         onDoubleClicked: {
 
 
@@ -309,8 +319,12 @@ Rectangle {
                 var hit = getHit(mouse.x, mouse.y);
 
                 if (hit.objectName === "content") {
-                    updateCursor(mouse);
-                    mainView.clearSelection();
+                    var hitTransition = transitionHitTest(mouse.x, mouse.y);
+                    if (hitTransition) {
+                    } else  {
+                        updateCursor(mouse);
+                        mainView.clearSelection();
+                    }
                 } else if (hit.objectName === "headerRect") {
                     var stateItem = hit.parent;
                     mainView.clearSelection();

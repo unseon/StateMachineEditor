@@ -18,7 +18,7 @@ Item {
         var posFrom = mainView.transitionLayer.mapFromItem(from, 0, 0);
         var posTo = mainView.transitionLayer.mapFromItem(to, 0, 0);
 
-        if (from.x < to.x) {
+        if (posFrom.x < posTo.x) {
             x = posFrom.x + from.width - 33;
             y = posFrom.y + from.height;
             width = posTo.x - x;
@@ -32,23 +32,33 @@ Item {
             height = posFrom.y + 37 - y;
             isForward = false;
         }
+        //console.log('from: ', from.x, from.y, from.width, from.height);
+        //console.log('to: ', to.x, to.y, to.width, to.height);
+        //console.log(x, y, width, height, isForward);
     }
 
-//    Rectangle {
-//        id: horizontalLine
-//        height: 2
-//        width: parent.width
-//        border.width: 2
-//        border.color: "black"
-//    }
+    function hitTest(posX, posY) {
+        var tolerance = 5;
 
-//    Rectangle {
-//        id: verticalLine
-//        x: parent.width - border.width - 10
-//        width: 2
-//        height: parent.height
-//        border.width: 2
-//    }
+        if (posX >= - tolerance &&  posX < tolerance && posY > 0 && posY < height - lineShape.radius) {
+            // vertical line hit test
+            return true;
+        } else if (posX >= lineShape.radius &&  posX < width && posY > height - tolerance && posY < height + tolerance) {
+            // horiontal line hit test
+            return true;
+        } else if (posX >= - tolerance && posX < lineShape.radius &&
+                   posY >= height - lineShape.radius && posY < height + tolerance) {
+            var length = Math.sqrt(Math.pow(posX - lineShape.radius, 2) + Math.pow(posY - (height - lineShape.radius), 2));
+            console.log("dist:", Math.abs(length - lineShape.radius));
+            if (Math.abs(length - lineShape.radius) < tolerance) {
+                return true;
+            } else {
+                return false;
+            }
+        } else {
+            return false;
+        }
+    }
 
     Rectangle {
         width: parent.width + 1
@@ -58,6 +68,7 @@ Item {
         color: "transparent"
 
         Rectangle {
+            id: lineShape
             y: - radius
 
             width: transitionItem.width + radius
