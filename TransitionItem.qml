@@ -49,7 +49,8 @@ Item {
         } else if (posX >= - tolerance && posX < lineShape.radius &&
                    posY >= height - lineShape.radius && posY < height + tolerance) {
             var length = Math.sqrt(Math.pow(posX - lineShape.radius, 2) + Math.pow(posY - (height - lineShape.radius), 2));
-            console.log("dist:", Math.abs(length - lineShape.radius));
+            // round coner hit test
+            //console.log("dist:", Math.abs(length - lineShape.radius));
             if (Math.abs(length - lineShape.radius) < tolerance) {
                 return true;
             } else {
