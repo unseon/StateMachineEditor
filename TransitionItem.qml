@@ -8,6 +8,7 @@ Item {
     property var to
 
     property bool isForward
+    property bool selected : false
 
     onModelChanged: {
         from = mainView.getStateItemFromModel(model.sourceState);
@@ -44,7 +45,7 @@ Item {
             // vertical line hit test
             return true;
         } else if (posX >= lineShape.radius &&  posX < width && posY > height - tolerance && posY < height + tolerance) {
-            // horiontal line hit test
+            // horizontal line hit test
             return true;
         } else if (posX >= - tolerance && posX < lineShape.radius &&
                    posY >= height - lineShape.radius && posY < height + tolerance) {

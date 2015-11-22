@@ -7,8 +7,10 @@ Rectangle {
 
     property var targetState: null
     property var stateMachineItem: null
+
     property var selectedItem: null
     property var selectedItems: []
+    property string selectedType: ""
 
     property alias helper: helper
     property alias mouseHelper: mouseHelper
