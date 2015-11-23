@@ -6,6 +6,7 @@
         <file>StateSampleButton.qml</file>
         <file>StateMachineItem.qml</file>
         <file>TransitionItem.qml</file>
+        <file>HierarchyView.qml</file>
     </qresource>
     <qresource prefix="/images">
         <file>images/icons/minus.png</file>

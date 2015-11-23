@@ -5,7 +5,7 @@ import QtQuick.Layouts 1.1
 
 ApplicationWindow {
     visible: true
-    width: 640
+    width: 1024
     height: 480
     title: qsTr("Hello World")
 
@@ -125,6 +125,13 @@ ApplicationWindow {
                 width: 150
                 height: 50
             }
+        }
+
+        HierarchyView {
+            id: hierarchyView
+            width: 300
+
+            targetItem: sampleButton
         }
 
         StateMachineMainView {
