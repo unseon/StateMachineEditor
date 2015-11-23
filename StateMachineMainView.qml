@@ -26,6 +26,7 @@ Rectangle {
             selectedItems = [];
             selectedItems.push(selectedItem);
             selectedItem.selected = true;
+            selectedType = typeName(selectedItem);
         }
     }
 
@@ -38,7 +39,25 @@ Rectangle {
         stateItem.selected = true;
     }
 
-    function clearSelection(stateItem) {
+    function unselectAll() {
+        for (var i = 0; i < selectedItems.length; i++) {
+            if (selectedItems[i].isStateItem) {
+                //unselectStateItem(selectedItems[i]);
+            } else if (selectedItems[i].isTransitionItem) {
+                unselectTransitionItem(selectedItems[i]);
+            }
+        }
+
+        unselectStateItem();
+    }
+
+    function unselectTransitionItem(transitionItem) {
+        transitionItem.selected = false;
+    }
+
+    function unselectStateItem(stateItem) {
+
+        // when root state
         if (!stateItem) {
             stateItem = mainView.stateMachineItem;
             selectedItem = null;
@@ -49,8 +68,30 @@ Rectangle {
 
         for (var i = 0; i < stateItem.content.children.length; i++) {
             var childItem = stateItem.content.children[i];
-            clearSelection(childItem);
+            unselectStateItem(childItem);
         }
+    }
+
+    function removeTransition(transitionItem) {
+        var newTransitionList = [];
+
+        for (var i = 0; i < transitionLayer.children.length; i++) {
+            var transition = transitionLayer.children[i];
+            if (transition === transitionItem) {
+                continue;
+            }
+
+            newTransitionList.push(transitionLayer.children[i]);
+        }
+
+        transitionItem.destroy();
+    }
+
+    function removeSelectedTransition() {
+        var selectedTransition = selectedItem;
+        unselectAll();
+
+        removeTransition(selectedTransition);
     }
 
     function removeTransitionsConnected(stateItem) {
@@ -230,7 +271,7 @@ Rectangle {
                 mainView.state = "";
                 mainView.selectedItem.labelEdit.deselect();
                 mainView.selectedItem.state = "";
-                mainView.clearSelection();
+                mainView.unselectStateItem();
 
                 updateCursor(mouse);
                 cursor.visible = false;
@@ -243,7 +284,7 @@ Rectangle {
 
                 if (hit.objectName === "headerRect") {
                    var stateItem = hit.parent;
-                   mainView.clearSelection();
+                   mainView.unselectAll;
                    mainView.selectedItem = stateItem;
                    updateCursor(mouse);
                    cursor.visible = false;
@@ -252,7 +293,7 @@ Rectangle {
 
                 } else if (hit.objectName === "content") {
                     updateCursor(mouse);
-                    mainView.clearSelection();
+                    mainView.unselectAll();
                     contextMenu.popup();
                 }
             }
@@ -265,6 +306,9 @@ Rectangle {
                 console.log(pos);
                 var result = transitionItem.hitTest(pos.x, pos.y);
                 console.log("transtion hit : " + result);
+                if (result) {
+                    return transitionItem;
+                }
             }
         }
 
@@ -305,7 +349,7 @@ Rectangle {
                 } else if (hit.objectName === "headerRect") {
                     var stateItem = hit.parent;
                     if (mainView.selectedItem === null) {
-                        mainView.clearSelection();
+                        mainView.unselectAll();
                         mainView.selectedItem = stateItem;
                     } else {
                         mainView.addSelectionItem(stateItem);
@@ -323,13 +367,16 @@ Rectangle {
                 if (hit.objectName === "content") {
                     var hitTransition = transitionHitTest(mouse.x, mouse.y);
                     if (hitTransition) {
+                        console.log("transition hitted");
+                        mainView.unselectAll();
+                        mainView.selectedItem = hitTransition;
                     } else  {
                         updateCursor(mouse);
-                        mainView.clearSelection();
+                        mainView.unselectAll();
                     }
                 } else if (hit.objectName === "headerRect") {
                     var stateItem = hit.parent;
-                    mainView.clearSelection();
+                    mainView.unselectAll();
                     mainView.selectedItem = stateItem;
                     updateCursor(mouse);
                     cursor.visible = false;

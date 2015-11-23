@@ -46,15 +46,15 @@ ApplicationWindow {
                 Layout.preferredWidth: 50
             }
 
+            ToolButton {
+                action: removeTransitionAction
+
+                Layout.fillWidth: false
+                Layout.preferredWidth: 50
+            }
+
             Item { Layout.fillWidth: true }
         }
-    }
-
-    Action {
-        id: removeStateAction
-        text: qsTr("Remove State");
-        iconSource: "qrc:/images/images/icons/minus.png"
-        onTriggered: mainView.removeState();
     }
 
     Action {
@@ -65,10 +65,24 @@ ApplicationWindow {
     }
 
     Action {
+        id: removeStateAction
+        text: qsTr("Remove State");
+        iconSource: "qrc:/images/images/icons/minus.png"
+        onTriggered: mainView.removeState();
+    }
+
+    Action {
         id: createTransitionAction
         text: qsTr("Create Transition");
         iconSource: "qrc:/images/images/icons/plus.png"
         onTriggered: mainView.createTransition();
+    }
+
+    Action {
+        id: removeTransitionAction
+        text: qsTr("Create Transition");
+        iconSource: "qrc:/images/images/icons/minus.png"
+        onTriggered: mainView.removeSelectedTransition();
     }
 
     Menu {

@@ -50,6 +50,8 @@ Rectangle {
 
     property var transitions: []
 
+    property bool isStateItem: true
+
     Component.onCompleted: {
         //console.log(label + " completed / state: " + state);
         //content.updateLayout();

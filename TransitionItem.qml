@@ -10,6 +10,10 @@ Item {
     property bool isForward
     property bool selected : false
 
+    property bool isTransitionItem: true
+
+    z: selected ? 1 : 0
+
     onModelChanged: {
         from = mainView.getStateItemFromModel(model.sourceState);
         to = mainView.getStateItemFromModel(model.targetState);
@@ -79,7 +83,7 @@ Item {
 
             color: "transparent"
             border.width: 2
-            border.color: "#39a276"
+            border.color: transitionItem.selected ? "yellow":"#39a276"
         }
     }
 
