@@ -5,6 +5,8 @@ Rectangle {
     width: 200
     height: 500
 
+    property var selected: null
+
     property var targetItem: null
 
     property var itemList: ListModel{}
@@ -115,7 +117,14 @@ Rectangle {
 
                                 Text {
                                     anchors.fill: parent
-                                    text: stateMachines.get(0).target.objectName
+                                    text: stateMachines.get(index).target.objectName
+                                }
+
+                                MouseArea {
+                                    anchors.fill: parent
+                                    onClicked: {
+                                        hierarchyView.selected = stateMachines.get(index).target;
+                                    }
                                 }
                             }
                     }

@@ -2,8 +2,11 @@ import QtQuick 2.5
 import QtQuick.Controls 1.4
 import QtQuick.Controls.Styles 1.4
 import QtQuick.Layouts 1.1
+import QtQuick.Window 2.0
 
 ApplicationWindow {
+    id: applicationWindow
+
     visible: true
     width: 1024
     height: 480
@@ -132,6 +135,10 @@ ApplicationWindow {
             width: 300
 
             targetItem: sampleButton
+
+            onSelectedChanged: {
+                mainView.targetState = selected;
+            }
         }
 
         StateMachineMainView {
@@ -141,7 +148,7 @@ ApplicationWindow {
             color: "lightgray"
 
             Component.onCompleted: {
-                targetState = sampleButton.stateMachine;
+                //targetState = sampleButton.stateMachine;
             }
         }
     }
