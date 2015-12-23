@@ -29,7 +29,7 @@ ApplicationWindow {
             MenuItem {
                 text: qsTr("&Save")
                 onTriggered: {
-                    mainView.save(applicationWindow.fileUrl);
+                    mainView.save(applicationWindow.fileUrl + "_output");
                 }
             }
             MenuItem {

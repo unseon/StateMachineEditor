@@ -34,7 +34,7 @@ Rectangle {
     property var target
 
     property string label: "untitled"
-    property string type: "state"
+    property string type: "State"
 
     property alias labelEdit: labelEdit
 
@@ -79,6 +79,21 @@ Rectangle {
             width = content.width
             height = headerRect.height + content.height
        }
+    }
+
+    function findByName(name) {
+        if (label === name) {
+            return this;
+        } else {
+            for (var i = 0; i < content.children.length; i++) {
+                var child = content.children[i];
+                if (child.findByName(name)) {
+                    return child;
+                }
+            }
+
+            return null;
+        }
     }
 
     onZoomedChanged: {

@@ -37,7 +37,7 @@ Rectangle {
     }
 
     function save(fileUrl) {
-        QmlExporter.save(stateMachineItem, fileUrl);
+        QmlExporter.save(fileUrl, stateMachineItem);
     }
 
     function addSelectionItem(stateItem) {
@@ -196,9 +196,35 @@ Rectangle {
         }
     }
 
+    function createUniqueStateName() {
+        // state + {number}
+        var prefix = "state";
+        var name = prefix;
+        if(findStateByName(name) !== null) {
+
+            for (var i = 0; i < 1000; i++) {
+                name = prefix + i;
+                if (findStateByName(name) === null) {
+                    break;
+                }
+            }
+        }
+
+        return name;
+    }
+
+    function findStateByName(name) {
+        var item = stateMachineItem.findByName(name);
+        console.log("found name: " + name);
+        console.log("found name: " + (item?item.label:null));
+        return item;
+    }
+
     function createState() {
+        var name = createUniqueStateName();
+
         var stateItem = stateItemComponent.createObject(stage);
-        stateItem.label = "new state";
+        stateItem.label = name;
         cursor.currentContent.insertChildAt(stateItem, cursor.currentIndex);
 
         updateLayout();

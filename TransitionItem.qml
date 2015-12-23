@@ -12,11 +12,20 @@ Item {
 
     property bool isTransitionItem: true
 
+    property string type
+
     z: selected ? 1 : 0
+
+    function typeName(obj) {
+        return obj.toString().split("(")[0].split("_")[0];
+    }
 
     onModelChanged: {
         from = mainView.getStateItemFromModel(model.sourceState);
         to = mainView.getStateItemFromModel(model.targetState);
+
+        type = typeName(model);
+        objectName = model.objectName;
     }
 
     function update() {
