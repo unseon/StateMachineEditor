@@ -37,7 +37,7 @@ Rectangle {
     }
 
     function save(fileUrl) {
-
+        QmlExporter.save(stateMachineItem, fileUrl);
     }
 
     function addSelectionItem(stateItem) {
