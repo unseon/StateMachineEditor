@@ -3,6 +3,7 @@ import QtQuick.Controls 1.4
 import QtQuick.Controls.Styles 1.4
 import QtQuick.Layouts 1.1
 import QtQuick.Window 2.0
+import QtQuick.Dialogs 1.0
 
 ApplicationWindow {
     id: applicationWindow
@@ -12,16 +13,43 @@ ApplicationWindow {
     height: 480
     title: qsTr("Hello World")
 
+    property string fileUrl
+
     menuBar: MenuBar {
         Menu {
             title: qsTr("File")
             MenuItem {
                 text: qsTr("&Open")
-                onTriggered: console.log("Open action triggered");
+                onTriggered: {
+                    console.log("Open action triggered");
+                    fileDialog.visible = true;
+                }
+            }
+
+            MenuItem {
+                text: qsTr("&Save")
+                onTriggered: {
+                }
             }
             MenuItem {
                 text: qsTr("Exit")
                 onTriggered: Qt.quit();
+            }
+        }
+    }
+
+    FileDialog {
+        id: fileDialog
+        title: "Please choose a file"
+        folder: shortcuts.home
+
+        onAccepted: {
+            console.log("You chose: " + fileDialog.fileUrl)
+            var component = Qt.createComponent(fileDialog.fileUrl);
+            if (component.status === Component.Ready) {
+
+                applicationWindow.fileUrl = fileDialog.fileUrl;
+                stateMachineContainer.stateMachine = component.createObject(stateMachineContainer);
             }
         }
     }
@@ -112,34 +140,20 @@ ApplicationWindow {
         }
     }
 
+    Item {
+        id: stateMachineContainer
+        visible: false
+
+        property var stateMachine
+
+        onStateMachineChanged: {
+            mainView.targetState = stateMachine;
+        }
+    }
+
     SplitView {
         anchors.fill: parent
         orientation: Qt.Horizontal
-
-        Rectangle{
-            id: stage
-            width: 200
-            Layout.maximumWidth: 400
-
-
-            StateSampleButton {
-                id: sampleButton
-                anchors.centerIn: parent
-                width: 150
-                height: 50
-            }
-        }
-
-        HierarchyView {
-            id: hierarchyView
-            width: 300
-
-            targetItem: sampleButton
-
-            onSelectedChanged: {
-                mainView.targetState = selected;
-            }
-        }
 
         StateMachineMainView {
             id: mainView
