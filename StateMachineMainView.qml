@@ -7,7 +7,7 @@ Rectangle {
     id: mainView
     color: "#ececec"
 
-    property var targetState: null
+    property var targetStateMachine: null
     property var stateMachineItem: null
 
     property var selectedItem: null
@@ -121,7 +121,7 @@ Rectangle {
 
     function getTransitionList() {
         var transitionList = [];
-        buildTransitionOnModel(targetState, transitionList);
+        buildTransitionOnModel(targetStateMachine, transitionList);
 
         return transitionList;
     }
@@ -157,7 +157,7 @@ Rectangle {
         return null;
     }
 
-    property Component stateMachineComponent: Component {
+    property Component stateMachineItemComponent: Component {
         StateMachineItem{
 
         }
@@ -175,12 +175,12 @@ Rectangle {
         }
     }
 
-    onTargetStateChanged: {
-        if (targetState) {
+    onTargetStateMachineChanged: {
+        if (targetStateMachine) {
             //var topState = stateComponent.createObject(stage, {"width": mainView.width, "height": mainView.height});
-            stateMachineItem = stateMachineComponent.createObject(stage);//, {"target": targetState});
+            stateMachineItem = stateMachineItemComponent.createObject(stage);//, {"target": targetState});
             //stateMachineItem.zoomed = true;
-            stateMachineItem.target = targetState;
+            stateMachineItem.target = targetStateMachine;
             //stateMachineItem.width = Qt.binding(function(){return mainView.width});
             //stateMachineItem.height = Qt.binding(function(){return mainView.height});
 
@@ -192,7 +192,10 @@ Rectangle {
                 transitionItem.model = transitionModel;
             }
 
+            visible = true;
             updateLayout();
+        } else {
+            visible = false;
         }
     }
 

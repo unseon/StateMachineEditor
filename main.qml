@@ -4,6 +4,7 @@ import QtQuick.Controls.Styles 1.4
 import QtQuick.Layouts 1.1
 import QtQuick.Window 2.0
 import QtQuick.Dialogs 1.0
+import QtQml.StateMachine 1.0 as DSM
 
 ApplicationWindow {
     id: applicationWindow
@@ -18,6 +19,14 @@ ApplicationWindow {
     menuBar: MenuBar {
         Menu {
             title: qsTr("File")
+
+            MenuItem {
+                text: qsTr("&New File")
+                onTriggered: {
+                    newFile();
+                }
+            }
+
             MenuItem {
                 text: qsTr("&Open")
                 onTriggered: {
@@ -37,6 +46,24 @@ ApplicationWindow {
                 onTriggered: Qt.quit();
             }
         }
+    }
+
+    property Component stateMachineComponent: Component {
+        DSM.StateMachine{
+            id: stateMachine
+
+            initialState: state1
+            objectName: "stateMachine"
+
+            DSM.State {
+                id: state1
+                objectName: "state1"
+            }
+        }
+    }
+
+    function newFile() {
+        stateMachineContainer.stateMachine = stateMachineComponent.createObject(stateMachineContainer);
     }
 
     FileDialog {
@@ -148,7 +175,7 @@ ApplicationWindow {
         property var stateMachine
 
         onStateMachineChanged: {
-            mainView.targetState = stateMachine;
+            mainView.targetStateMachine = stateMachine;
         }
     }
 
