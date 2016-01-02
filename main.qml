@@ -55,6 +55,8 @@ ApplicationWindow {
             initialState: state1
             objectName: "stateMachine"
 
+            signal machineTest
+
             DSM.State {
                 id: state1
                 objectName: "state1"
@@ -144,6 +146,7 @@ ApplicationWindow {
         onTriggered: mainView.removeSelectedTransition();
     }
 
+
     Menu {
         id: contextMenu
         title: "Edit"
@@ -182,6 +185,13 @@ ApplicationWindow {
     SplitView {
         anchors.fill: parent
         orientation: Qt.Horizontal
+
+        SignalListView {
+            id: signalView
+
+            width: 100
+
+        }
 
         StateMachineMainView {
             id: mainView

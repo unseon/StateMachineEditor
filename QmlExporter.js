@@ -29,7 +29,6 @@ function getTransitionList(fromState) {
 
 function writeState(stateItem, indent) {
     var indent = indent || 0;
-    //var type = indent === 0 ? "StateMachine" : "State"
     var type = stateItem.type;
 
     var indentString = Array(indent * 4).join(" ");
@@ -41,6 +40,18 @@ function writeState(stateItem, indent) {
     properties.push(propertyIndentString + "id: " + stateItem.label);
     properties.push(propertyIndentString + "objectName: \"" + stateItem.label + "\"");
     result = result.concat(properties);
+
+    // add signal when StateMachine
+    if (type === "StateMachine") {
+        var signals = [];
+
+        var keys = Object.keys(stateItem);
+        for (var i = 28; i < keys.length; i++) {
+            signals.push(propertyIndentString + 'signal ' + keys[i]);
+        }
+
+        result = result.concat(signals);
+    }
 
     //write states
     for (var i = 0; i < stateItem.content.children.length; i++) {

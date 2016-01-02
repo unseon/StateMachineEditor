@@ -8,6 +8,7 @@
         <file>TransitionItem.qml</file>
         <file>HierarchyView.qml</file>
         <file>QmlExporter.js</file>
+        <file>SignalListView.qml</file>
     </qresource>
     <qresource prefix="/images">
         <file>images/icons/minus.png</file>

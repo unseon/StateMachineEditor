@@ -16,10 +16,19 @@ Rectangle {
 
     property alias helper: helper
     property alias mouseHelper: mouseHelper
-    property alias curosr: cursor
+    property alias cursor: cursor
     property alias transitionLayer: transitionLayer
 
     property var stateTable: [] // [stateModel, stateItem]
+
+    property int signalIndex: 28
+    property var signals: []
+
+
+    Component.onCompleted: {
+        //console.log(JSON.stringify(this));
+
+    }
 
     onSelectedItemChanged: {
         if (selectedItem === null) {
@@ -193,6 +202,18 @@ Rectangle {
             }
 
             visible = true;
+
+            //console.log(JSON.stringify(targetStateMachine));
+
+
+            console.log(Object.keys(targetStateMachine)[28]);
+
+            for (var p in targetStateMachine) {
+                console.log(p);
+            }
+
+
+
             updateLayout();
         } else {
             visible = false;
@@ -265,6 +286,9 @@ Rectangle {
         id: scrollFrame
         //color: "#FBFFFA"
         anchors.fill: parent
+
+        flickableItem.rebound: null
+
 
         viewport.onWidthChanged: {
             console.log("Viewport width: " + viewport.width);
