@@ -22,7 +22,7 @@ Rectangle {
     property var stateTable: [] // [stateModel, stateItem]
 
     property int signalIndex: 28
-    property var signals: []
+    property var signals: ListModel{}
 
 
     Component.onCompleted: {
@@ -203,16 +203,13 @@ Rectangle {
 
             visible = true;
 
-            //console.log(JSON.stringify(targetStateMachine));
-
-
-            console.log(Object.keys(targetStateMachine)[28]);
-
-            for (var p in targetStateMachine) {
-                console.log(p);
+            // import signal list
+            var properties = Object.keys(targetStateMachine)
+            for (var i = signalIndex; i < properties.length; i++) {
+                signals.append({"name": properties[i]});
             }
 
-
+            stateMachineItem.signals = signals;
 
             updateLayout();
         } else {

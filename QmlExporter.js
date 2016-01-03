@@ -45,9 +45,8 @@ function writeState(stateItem, indent) {
     if (type === "StateMachine") {
         var signals = [];
 
-        var keys = Object.keys(stateItem);
-        for (var i = 28; i < keys.length; i++) {
-            signals.push(propertyIndentString + 'signal ' + keys[i]);
+        for (var i = 0; i < stateItem.signals.count; i++) {
+            signals.push(propertyIndentString + 'signal ' + stateItem.signals.get(i).name);
         }
 
         result = result.concat(signals);

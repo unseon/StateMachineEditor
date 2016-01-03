@@ -190,6 +190,7 @@ ApplicationWindow {
             id: signalView
 
             width: 100
+            model: mainView.signals
 
         }
 

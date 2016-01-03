@@ -44,12 +44,6 @@ Rectangle {
             anchors.fill: parent
             clip: true
 
-            model: ListModel{
-                ListElement {
-                    name: "next"
-                }
-            }
-
             delegate: Rectangle {
                 width: listView.width
                 height: 40
