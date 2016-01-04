@@ -154,7 +154,7 @@ Rectangle {
     }
 
     function typeName(obj) {
-        return obj.toString().split("(")[0];
+        return obj.toString().split("(")[0].split("_")[0];
     }
 
     Rectangle {

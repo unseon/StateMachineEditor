@@ -41,6 +41,14 @@ ApplicationWindow {
                     mainView.save(applicationWindow.fileUrl + "_output");
                 }
             }
+
+            MenuItem {
+                text: qsTr("&Export to JSON")
+                onTriggered: {
+                    mainView.exportToJson("/Users/unseon/output.json");
+                }
+            }
+
             MenuItem {
                 text: qsTr("Exit")
                 onTriggered: Qt.quit();

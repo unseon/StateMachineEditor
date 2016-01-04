@@ -9,6 +9,7 @@
         <file>HierarchyView.qml</file>
         <file>QmlExporter.js</file>
         <file>SignalListView.qml</file>
+        <file>JsonExporter.js</file>
     </qresource>
     <qresource prefix="/images">
         <file>images/icons/minus.png</file>

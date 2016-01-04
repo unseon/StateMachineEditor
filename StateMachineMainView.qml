@@ -2,6 +2,7 @@ import QtQuick 2.0
 import QtQuick.Controls 1.4
 
 import "QmlExporter.js" as QmlExporter
+import "JsonExporter.js" as JsonExporter
 
 Rectangle {
     id: mainView
@@ -47,6 +48,10 @@ Rectangle {
 
     function save(fileUrl) {
         QmlExporter.save(fileUrl, stateMachineItem);
+    }
+
+    function exportToJson(fileUrl) {
+        JsonExporter.save(fileUrl, stateMachineItem);
     }
 
     function addSelectionItem(stateItem) {
