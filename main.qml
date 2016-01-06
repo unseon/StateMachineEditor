@@ -12,7 +12,7 @@ ApplicationWindow {
     visible: true
     width: 1024
     height: 480
-    title: qsTr("Hello World")
+    title: fileUrl ? fileUrl : "(Empty)"
 
     property string fileUrl
 
@@ -22,13 +22,15 @@ ApplicationWindow {
 
             MenuItem {
                 text: qsTr("&New File")
+                shortcut: "Ctrl+N"
                 onTriggered: {
                     newFile();
                 }
             }
 
             MenuItem {
-                text: qsTr("&Open")
+                text: qsTr("&Open...")
+                shortcut: "Ctrl+O"
                 onTriggered: {
                     console.log("Open action triggered");
                     fileDialog.visible = true;
@@ -36,23 +38,33 @@ ApplicationWindow {
             }
 
             MenuItem {
-                text: qsTr("&Save")
+                text: qsTr("&Save...")
+                shortcut: "Ctrl+S"
                 onTriggered: {
-                    mainView.save(applicationWindow.fileUrl + "_output");
+
+                    if (applicationWindow.fileUrl) {
+                        mainView.save(applicationWindow.fileUrl);
+                    } else {
+                        saveFileDialog.visible = true;
+                    }
                 }
             }
 
             MenuItem {
-                text: qsTr("&Export to JSON")
+                text: qsTr("Save As...")
+                shortcut: "Shift+Ctrl+S"
+                onTriggered: {
+                    saveFileDialog.visible = true;
+                }
+            }
+
+            MenuItem {
+                text: qsTr("&Export to JSON...")
                 onTriggered: {
                     mainView.exportToJson("/Users/unseon/output.json");
                 }
             }
 
-            MenuItem {
-                text: qsTr("Exit")
-                onTriggered: Qt.quit();
-            }
         }
     }
 
@@ -89,6 +101,21 @@ ApplicationWindow {
                 applicationWindow.fileUrl = fileDialog.fileUrl;
                 stateMachineContainer.stateMachine = component.createObject(stateMachineContainer);
             }
+        }
+    }
+
+    FileDialog {
+        id: saveFileDialog
+        title: "Save File As"
+        folder: shortcuts.home
+
+
+        selectExisting: false
+        onAccepted: {
+            console.log("You chose: " + fileUrl)
+            mainView.save(fileUrl);
+
+            applicationWindow.fileUrl = fileUrl;
         }
     }
 
@@ -176,6 +203,32 @@ ApplicationWindow {
 
         MenuItem {
             text: "Change Type"
+        }
+    }
+
+    Menu {
+        id: transitionContextMenu
+        title: "Transition Menu"
+
+        MenuSeparator {
+
+        }
+
+        Menu {
+            id: signalAssign
+            title: "Assign Signal"
+
+            Instantiator {
+                model: mainView.signals
+
+                MenuItem {
+                    text: model.name
+                    onTriggered: mainView.assignSignal(model)
+                }
+
+                onObjectAdded: signalAssign.insertItem(index, object)
+                onObjectRemoved: signalAssign.removeItem(object)
+            }
         }
     }
 

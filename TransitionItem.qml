@@ -12,7 +12,9 @@ Item {
 
     property bool isTransitionItem: true
 
-    property string type
+    property string type: "SignalTransition"
+
+    property var signalEntity
 
     z: selected ? 1 : 0
 

@@ -59,6 +59,10 @@ Rectangle {
         stateItem.selected = true;
     }
 
+    function assignSignal(signalEntity) {
+        selectedItem.signalEntity = signalEntity;
+    }
+
     function unselectAll() {
         for (var i = 0; i < selectedItems.length; i++) {
             if (selectedItems[i].isStateItem) {
@@ -204,6 +208,7 @@ Rectangle {
                 var transitionModel = transitionList[i];
                 var transitionItem = transitionComponent.createObject(transitionLayer);
                 transitionItem.model = transitionModel;
+                transitionItem.signalEntity = getSignalEntity(transitionModel.signal);
             }
 
             visible = true;
@@ -211,7 +216,7 @@ Rectangle {
             // import signal list
             var properties = Object.keys(targetStateMachine)
             for (var i = signalIndex; i < properties.length; i++) {
-                signals.append({"name": properties[i]});
+                signals.append({"name": properties[i], "signalObject": targetStateMachine[properties[i]]});
             }
 
             stateMachineItem.signals = signals;
@@ -220,6 +225,16 @@ Rectangle {
         } else {
             visible = false;
         }
+    }
+
+    function getSignalEntity(signalObject) {
+        for (var i = 0; i < signals.length; i++) {
+            if (signals.get(i).signalObject === signalObject) {
+                return signal.get(i);
+            }
+        }
+
+        return false;
     }
 
     function createUniqueStateName() {
@@ -251,6 +266,7 @@ Rectangle {
 
         var stateItem = stateItemComponent.createObject(stage);
         stateItem.label = name;
+        stateItem.type = "StateMachine";
         cursor.currentContent.insertChildAt(stateItem, cursor.currentIndex);
 
         updateLayout();
@@ -467,9 +483,16 @@ Rectangle {
                            contextMenu.popup();
 
                         } else if (hit.objectName === "content") {
-                            updateCursor(mouse);
-                            mainView.unselectAll();
-                            contextMenu.popup();
+                            var hitTransition = transitionHitTest(mouse.x, mouse.y);
+                            if (hitTransition) {
+                                cursor.visible = false;
+                                mainView.selectedItem = hitTransition;
+                                transitionContextMenu.popup();
+                            } else {
+                                updateCursor(mouse);
+                                mainView.unselectAll();
+                                contextMenu.popup();
+                            }
                         }
                     }
                 }

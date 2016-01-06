@@ -83,8 +83,14 @@ function writeTransition(transition, indent) {
         'type': transition.type,
         'id': transition.objectName,
         'objectName': transition.objectName,
-        'targetState': transition.to.label
+        'targetState': transition.to.label,
+        'type': transition.type
     };
+
+    if (transition.signalEntity && transition.signalEntity.name) {
+        transitionJson.signalEntity = transition.signalEntity.name;
+    }
+
 
     return transitionJson;
 }
