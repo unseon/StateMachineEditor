@@ -2,7 +2,7 @@
 #include <QQmlApplicationEngine>
 #include <QQmlContext>
 
-#include "filewriter.h"
+#include "fileio.h"
 #include "metadatautil.h"
 
 int main(int argc, char *argv[])
@@ -11,10 +11,11 @@ int main(int argc, char *argv[])
 
     QQmlApplicationEngine engine;
 
-    FileWriter fileWriter;
+    FileIo fileIo;
     MetaDataUtil metaDataUtil;
 
-    engine.rootContext()->setContextProperty("fileWriter", &fileWriter);
+    engine.addImportPath("qrc:/");
+    engine.rootContext()->setContextProperty("fileIo", &fileIo);
     engine.rootContext()->setContextProperty("metaDataUtil", &metaDataUtil);
 
     engine.load(QUrl(QStringLiteral("qrc:/main.qml")));

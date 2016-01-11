@@ -14,7 +14,7 @@ Item {
 
     property string type: "SignalTransition"
 
-    property var signalEntity
+    property var signalName
 
     z: selected ? 1 : 0
 
@@ -28,6 +28,7 @@ Item {
 
         type = typeName(model);
         objectName = model.objectName;
+        signalName = model.signalName;
     }
 
     function update() {

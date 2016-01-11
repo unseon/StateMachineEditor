@@ -3,8 +3,8 @@ TEMPLATE = app
 QT += qml quick widgets
 
 SOURCES += main.cpp \
-    filewriter.cpp \
-    metadatautil.cpp
+    metadatautil.cpp \
+    fileio.cpp
 
 RESOURCES += qml.qrc
 
@@ -15,6 +15,6 @@ QML_IMPORT_PATH =
 include(deployment.pri)
 
 HEADERS += \
-    filewriter.h \
-    metadatautil.h
+    metadatautil.h \
+    fileio.h
 

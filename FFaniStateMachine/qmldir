@@ -1,0 +1,5 @@
+module FFaniStateMachine
+State 1.0 State.qml
+StateMachine 1.0 StateMachine.qml
+FinalState 1.0 FinalState.qml
+SignalTransition 1.0 SignalTransition.qml

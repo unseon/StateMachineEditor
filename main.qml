@@ -4,7 +4,8 @@ import QtQuick.Controls.Styles 1.4
 import QtQuick.Layouts 1.1
 import QtQuick.Window 2.0
 import QtQuick.Dialogs 1.0
-import QtQml.StateMachine 1.0 as DSM
+//import QtQml.StateMachine 1.0 as DSM
+import FFaniStateMachine 1.0 as FSM
 
 ApplicationWindow {
     id: applicationWindow
@@ -69,7 +70,7 @@ ApplicationWindow {
     }
 
     property Component stateMachineComponent: Component {
-        DSM.StateMachine{
+        FSM.StateMachine{
             id: stateMachine
 
             initialState: state1
@@ -77,7 +78,7 @@ ApplicationWindow {
 
             signal machineTest
 
-            DSM.State {
+            FSM.State {
                 id: state1
                 objectName: "state1"
             }
@@ -94,13 +95,12 @@ ApplicationWindow {
         folder: shortcuts.home
 
         onAccepted: {
-            console.log("You chose: " + fileDialog.fileUrl)
-            var component = Qt.createComponent(fileDialog.fileUrl);
-            if (component.status === Component.Ready) {
+            console.log("You chose: " + fileDialog.fileUrl);
+            var text = fileIo.read(fileDialog.fileUrl);
+            console.log(text.length);
 
-                applicationWindow.fileUrl = fileDialog.fileUrl;
-                stateMachineContainer.stateMachine = component.createObject(stateMachineContainer);
-            }
+            applicationWindow.fileUrl = fileDialog.fileUrl;
+            stateMachineContainer.stateMachine = Qt.createQmlObject(text, stateMachineContainer);
         }
     }
 
@@ -223,7 +223,7 @@ ApplicationWindow {
 
                 MenuItem {
                     text: model.name
-                    onTriggered: mainView.assignSignal(model)
+                    onTriggered: mainView.assignSignal(model.name)
                 }
 
                 onObjectAdded: signalAssign.insertItem(index, object)

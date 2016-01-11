@@ -59,8 +59,8 @@ Rectangle {
         stateItem.selected = true;
     }
 
-    function assignSignal(signalEntity) {
-        selectedItem.signalEntity = signalEntity;
+    function assignSignal(signalName) {
+        selectedItem.signalName = signalName;
     }
 
     function unselectAll() {
@@ -145,7 +145,7 @@ Rectangle {
     }
 
     function typeName(obj) {
-        return obj.toString().split("(")[0];
+        return obj.toString().split("(")[0].split("_")[0];
     }
 
     function buildTransitionOnModel(model, list) {
@@ -155,9 +155,6 @@ Rectangle {
 
             if (childType === "SignalTransition" || childType === "TimeoutTransition") {
                 var transition = child;
-                var from = transition.sourceState;
-                var to = transition.targetState;
-
                 list.push(transition);
             } else if (childType === "State") {
                 buildTransitionOnModel(child, list);
@@ -202,24 +199,25 @@ Rectangle {
             //stateMachineItem.width = Qt.binding(function(){return mainView.width});
             //stateMachineItem.height = Qt.binding(function(){return mainView.height});
 
+            // import signal list
+            var properties = Object.keys(targetStateMachine);
+            for (var i = signalIndex; i < properties.length; i++) {
+                console.log(properties[i] + "=" + targetStateMachine[properties[i]]);
+                signals.append({"name": properties[i], "propertyIndex": i});
+
+            }
+
+            stateMachineItem.signals = signals;
+
             var transitionList = getTransitionList();
 
             for (var i = 0; i < transitionList.length; i++) {
                 var transitionModel = transitionList[i];
                 var transitionItem = transitionComponent.createObject(transitionLayer);
                 transitionItem.model = transitionModel;
-                transitionItem.signalEntity = getSignalEntity(transitionModel.signal);
             }
 
             visible = true;
-
-            // import signal list
-            var properties = Object.keys(targetStateMachine)
-            for (var i = signalIndex; i < properties.length; i++) {
-                signals.append({"name": properties[i], "signalObject": targetStateMachine[properties[i]]});
-            }
-
-            stateMachineItem.signals = signals;
 
             updateLayout();
         } else {
@@ -228,9 +226,14 @@ Rectangle {
     }
 
     function getSignalEntity(signalObject) {
-        for (var i = 0; i < signals.length; i++) {
-            if (signals.get(i).signalObject === signalObject) {
-                return signal.get(i);
+        console.log("signalObject:" + signalObject);
+
+
+        for (var i = 0; i < signals.count; i++) {
+
+            if (targetStateMachine[signals.get(i).propertyIndex] === signalObject) {
+
+                return signals.get(i);
             }
         }
 
@@ -266,7 +269,7 @@ Rectangle {
 
         var stateItem = stateItemComponent.createObject(stage);
         stateItem.label = name;
-        stateItem.type = "StateMachine";
+        stateItem.type = "State";
         cursor.currentContent.insertChildAt(stateItem, cursor.currentIndex);
 
         updateLayout();

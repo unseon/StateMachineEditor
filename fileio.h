@@ -3,15 +3,17 @@
 
 #include <QObject>
 
-class FileWriter : public QObject
+class FileIo : public QObject
 {
     Q_OBJECT
 public:
-    explicit FileWriter(QObject *parent = 0);
+    explicit FileIo(QObject *parent = 0);
 
 signals:
 public slots:
     void write(const QString& fileUrl, const QString& data);
+public:
+    Q_INVOKABLE QString read(const QString& fileUrl);
 };
 
 #endif // FILEWRITER_H

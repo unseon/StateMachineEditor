@@ -7,7 +7,7 @@ function save(url, stateMachineItem) {
 
     var text = JSON.stringify(writeState(stateMachineItem), null, 4);
 
-    fileWriter.write(url, text);
+    fileIo.write(url, text);
 }
 
 function getTransitionList(fromState) {
@@ -87,10 +87,9 @@ function writeTransition(transition, indent) {
         'type': transition.type
     };
 
-    if (transition.signalEntity && transition.signalEntity.name) {
-        transitionJson.signalEntity = transition.signalEntity.name;
+    if (transition.signalName) {
+        transitionJson.signalName = transition.signalName;
     }
-
 
     return transitionJson;
 }
