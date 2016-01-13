@@ -57,6 +57,10 @@ Rectangle {
                     text: model.name
 
                     verticalAlignment: Text.AlignVCenter
+
+                    onTextChanged: {
+                        listView.model.get(index).name = text;
+                    }
                 }
             }
 
@@ -69,7 +73,7 @@ Rectangle {
                     text: "+"
 
                     onClicked: {
-                        listView.model.append({name:"hello"});
+                        listView.model.append({name:"signal"});
                     }
                 }
             }

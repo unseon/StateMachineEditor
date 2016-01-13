@@ -59,8 +59,9 @@ Rectangle {
         stateItem.selected = true;
     }
 
-    function assignSignal(signalName) {
-        selectedItem.signalName = signalName;
+    function assignSignal(signalModel) {
+        //selectedItem.signalName = signalName;
+        selectedItem.signalModel = signalModel;
     }
 
     function unselectAll() {
@@ -215,6 +216,7 @@ Rectangle {
                 var transitionModel = transitionList[i];
                 var transitionItem = transitionComponent.createObject(transitionLayer);
                 transitionItem.model = transitionModel;
+                transitionItem.signalModel = getSignalModelByName(transitionModel.signalName)
             }
 
             visible = true;
@@ -223,6 +225,18 @@ Rectangle {
         } else {
             visible = false;
         }
+    }
+
+    function getSignalModelByName(signalName) {
+        for (var i = 0; i < signals.count; i++) {
+
+            if (signals.get(i).name === signalName) {
+
+                return signals.get(i);
+            }
+        }
+
+        return null;
     }
 
     function getSignalEntity(signalObject) {
@@ -439,6 +453,24 @@ Rectangle {
                 color: "transparent"
             }
 
+            Rectangle {
+                id: balloon
+
+                color: "yellow"
+                width: 150
+                height: 60
+
+                opacity: 0.5
+
+                Text {
+                    id: balloonText
+                    anchors.fill: parent
+                    anchors.margins: 5
+                }
+
+                visible: false
+            }
+
             MouseArea {
                 id: mouseHelper
 
@@ -634,9 +666,23 @@ Rectangle {
                 }
 
                 onPositionChanged: {
+                    balloon.visible = false;
+
                     if (drag.active) {
                         updateCursor(mouse);
                         focusedContent = cursor.currentContent;
+                    } else {
+                        var hit = getHit(mouse.x, mouse.y);
+                        if (hit.objectName === "content") {
+                            var hitTransition = transitionHitTest(mouse.x, mouse.y);
+                            if (hitTransition) {
+                                console.log("transition hitted");
+                                balloon.visible = true;
+                                balloon.x = mouse.x + 20;
+                                balloon.y = mouse.y + 20;
+                                balloonText.text = hitTransition.signalModel.name;
+                            }
+                        }
                     }
                 }
 

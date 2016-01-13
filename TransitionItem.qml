@@ -14,7 +14,8 @@ Item {
 
     property string type: "SignalTransition"
 
-    property var signalName
+    property string signalName
+    property var signalModel
 
     z: selected ? 1 : 0
 

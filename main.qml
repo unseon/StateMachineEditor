@@ -76,8 +76,6 @@ ApplicationWindow {
             initialState: state1
             objectName: "stateMachine"
 
-            signal machineTest
-
             FSM.State {
                 id: state1
                 objectName: "state1"
@@ -223,7 +221,7 @@ ApplicationWindow {
 
                 MenuItem {
                     text: model.name
-                    onTriggered: mainView.assignSignal(model.name)
+                    onTriggered: mainView.assignSignal(model)
                 }
 
                 onObjectAdded: signalAssign.insertItem(index, object)

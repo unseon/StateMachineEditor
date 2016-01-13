@@ -203,6 +203,10 @@ Rectangle {
                     horizontalAlignment: Text.AlignHCenter
                     verticalAlignment: Text.AlignVCenter
                     text: stateItem.label
+
+                    onTextChanged: {
+                        stateItem.label = text;
+                    }
                 }
             }
         }
