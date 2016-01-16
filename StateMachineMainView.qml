@@ -2,12 +2,13 @@ import QtQuick 2.0
 import QtQuick.Controls 1.4
 
 import "QmlExporter.js" as QmlExporter
+import "JsonExporter.js" as JsonExporter
 
 Rectangle {
     id: mainView
     color: "#ececec"
 
-    property var targetState: null
+    property var targetStateMachine: null
     property var stateMachineItem: null
 
     property var selectedItem: null
@@ -16,10 +17,19 @@ Rectangle {
 
     property alias helper: helper
     property alias mouseHelper: mouseHelper
-    property alias curosr: cursor
+    property alias cursor: cursor
     property alias transitionLayer: transitionLayer
 
     property var stateTable: [] // [stateModel, stateItem]
+
+    property int signalIndex: 28
+    property var signals: ListModel{}
+
+
+    Component.onCompleted: {
+        //console.log(JSON.stringify(this));
+
+    }
 
     onSelectedItemChanged: {
         if (selectedItem === null) {
@@ -40,9 +50,17 @@ Rectangle {
         QmlExporter.save(fileUrl, stateMachineItem);
     }
 
+    function exportToJson(fileUrl) {
+        JsonExporter.save(fileUrl, stateMachineItem);
+    }
+
     function addSelectionItem(stateItem) {
         selectedItems.push(stateItem);
         stateItem.selected = true;
+    }
+
+    function assignSignal(signalName) {
+        selectedItem.signalName = signalName;
     }
 
     function unselectAll() {
@@ -121,13 +139,13 @@ Rectangle {
 
     function getTransitionList() {
         var transitionList = [];
-        buildTransitionOnModel(targetState, transitionList);
+        buildTransitionOnModel(targetStateMachine, transitionList);
 
         return transitionList;
     }
 
     function typeName(obj) {
-        return obj.toString().split("(")[0];
+        return obj.toString().split("(")[0].split("_")[0];
     }
 
     function buildTransitionOnModel(model, list) {
@@ -137,9 +155,6 @@ Rectangle {
 
             if (childType === "SignalTransition" || childType === "TimeoutTransition") {
                 var transition = child;
-                var from = transition.sourceState;
-                var to = transition.targetState;
-
                 list.push(transition);
             } else if (childType === "State") {
                 buildTransitionOnModel(child, list);
@@ -157,7 +172,7 @@ Rectangle {
         return null;
     }
 
-    property Component stateMachineComponent: Component {
+    property Component stateMachineItemComponent: Component {
         StateMachineItem{
 
         }
@@ -175,14 +190,24 @@ Rectangle {
         }
     }
 
-    onTargetStateChanged: {
-        if (targetState) {
+    onTargetStateMachineChanged: {
+        if (targetStateMachine) {
             //var topState = stateComponent.createObject(stage, {"width": mainView.width, "height": mainView.height});
-            stateMachineItem = stateMachineComponent.createObject(stage);//, {"target": targetState});
+            stateMachineItem = stateMachineItemComponent.createObject(stage);//, {"target": targetState});
             //stateMachineItem.zoomed = true;
-            stateMachineItem.target = targetState;
+            stateMachineItem.target = targetStateMachine;
             //stateMachineItem.width = Qt.binding(function(){return mainView.width});
             //stateMachineItem.height = Qt.binding(function(){return mainView.height});
+
+            // import signal list
+            var properties = Object.keys(targetStateMachine);
+            for (var i = signalIndex; i < properties.length; i++) {
+                console.log(properties[i] + "=" + targetStateMachine[properties[i]]);
+                signals.append({"name": properties[i], "propertyIndex": i});
+
+            }
+
+            stateMachineItem.signals = signals;
 
             var transitionList = getTransitionList();
 
@@ -192,8 +217,27 @@ Rectangle {
                 transitionItem.model = transitionModel;
             }
 
+            visible = true;
+
             updateLayout();
+        } else {
+            visible = false;
         }
+    }
+
+    function getSignalEntity(signalObject) {
+        console.log("signalObject:" + signalObject);
+
+
+        for (var i = 0; i < signals.count; i++) {
+
+            if (targetStateMachine[signals.get(i).propertyIndex] === signalObject) {
+
+                return signals.get(i);
+            }
+        }
+
+        return false;
     }
 
     function createUniqueStateName() {
@@ -225,6 +269,7 @@ Rectangle {
 
         var stateItem = stateItemComponent.createObject(stage);
         stateItem.label = name;
+        stateItem.type = "State";
         cursor.currentContent.insertChildAt(stateItem, cursor.currentIndex);
 
         updateLayout();
@@ -262,6 +307,9 @@ Rectangle {
         id: scrollFrame
         //color: "#FBFFFA"
         anchors.fill: parent
+
+        flickableItem.rebound: null
+
 
         viewport.onWidthChanged: {
             console.log("Viewport width: " + viewport.width);
@@ -438,9 +486,16 @@ Rectangle {
                            contextMenu.popup();
 
                         } else if (hit.objectName === "content") {
-                            updateCursor(mouse);
-                            mainView.unselectAll();
-                            contextMenu.popup();
+                            var hitTransition = transitionHitTest(mouse.x, mouse.y);
+                            if (hitTransition) {
+                                cursor.visible = false;
+                                mainView.selectedItem = hitTransition;
+                                transitionContextMenu.popup();
+                            } else {
+                                updateCursor(mouse);
+                                mainView.unselectAll();
+                                contextMenu.popup();
+                            }
                         }
                     }
                 }

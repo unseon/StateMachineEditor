@@ -5,13 +5,13 @@ function typeName(obj) {
 function save(url, stateMachineItem) {
     console.log("save qml to " + url);
 
-    var textList = ["import QtQml.StateMachine 1.0"];
+    var textList = ["import FFaniStateMachine 1.0"];
     textList = textList.concat(writeState(stateMachineItem));
 
     var text = textList.join("\n");
     //console.log(text);
 
-    fileWriter.write(url, text);
+    fileIo.write(url, text);
 }
 
 function getTransitionList(fromState) {
@@ -29,8 +29,8 @@ function getTransitionList(fromState) {
 
 function writeState(stateItem, indent) {
     var indent = indent || 0;
-    //var type = indent === 0 ? "StateMachine" : "State"
     var type = stateItem.type;
+    console.log("writeState: " + type);
 
     var indentString = Array(indent * 4).join(" ");
     var result = [indentString + type + " {"];
@@ -40,7 +40,23 @@ function writeState(stateItem, indent) {
     var properties = [];
     properties.push(propertyIndentString + "id: " + stateItem.label);
     properties.push(propertyIndentString + "objectName: \"" + stateItem.label + "\"");
+
+    if (stateItem.content.children.length > 0) {
+        properties.push(propertyIndentString + "initialState: " + stateItem.content.children[0].label);
+    }
+
     result = result.concat(properties);
+
+    // add signal when StateMachine
+    if (type === "StateMachine") {
+        var signals = [];
+
+        for (var i = 0; i < mainView.signals.count; i++) {
+            signals.push(propertyIndentString + 'signal ' + mainView.signals.get(i).name);
+        }
+
+        result = result.concat(signals);
+    }
 
     //write states
     for (var i = 0; i < stateItem.content.children.length; i++) {
@@ -79,9 +95,19 @@ function writeTransition(transition, indent) {
 
     var properties = [];
     var propertyIndentString = Array((indent + 1) * 4).join(" ");
-    properties.push(propertyIndentString + "id: " + transition.objectName);
-    properties.push(propertyIndentString + "objectName: \"" + transition.objectName + "\"");
-    properties.push(propertyIndentString + "targetState: " + transition.to.label);
+    if (transition.objectName) {
+        properties.push(propertyIndentString + "id: " + transition.objectName);
+        properties.push(propertyIndentString + "objectName: \"" + transition.objectName + "\"");
+    }
+
+    if (transition.to !== null && transition.to.label !== null) {
+        properties.push(propertyIndentString + "targetState: " + transition.to.label);
+    }
+
+    if (transition.signalName !== null) {
+        properties.push(propertyIndentString + "signalName: \"" + transition.signalName + "\"");
+    }
+
     result = result.concat(properties);
 
     result.push(indentString + "}");

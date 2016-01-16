@@ -4,5 +4,7 @@ import QtQuick.Controls 1.4
 
 StateItem {
     id: stateMachineItem
+
+    property var signals: ListModel{}
 }
 

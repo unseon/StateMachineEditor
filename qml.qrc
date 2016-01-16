@@ -8,6 +8,13 @@
         <file>TransitionItem.qml</file>
         <file>HierarchyView.qml</file>
         <file>QmlExporter.js</file>
+        <file>SignalListView.qml</file>
+        <file>JsonExporter.js</file>
+        <file>FFaniStateMachine/State.qml</file>
+        <file>FFaniStateMachine/StateMachine.qml</file>
+        <file>FFaniStateMachine/SignalTransition.qml</file>
+        <file>FFaniStateMachine/qmldir</file>
+        <file>FFaniStateMachine/FinalState.qml</file>
     </qresource>
     <qresource prefix="/images">
         <file>images/icons/minus.png</file>
