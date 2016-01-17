@@ -104,8 +104,8 @@ function writeTransition(transition, indent) {
         properties.push(propertyIndentString + "targetState: " + transition.to.label);
     }
 
-    if (transition.signalName !== null) {
-        properties.push(propertyIndentString + "signalName: \"" + transition.signalName + "\"");
+    if (transition.signalModel !== null) {
+        properties.push(propertyIndentString + "signalName: \"" + transition.signalModel.name + "\"");
     }
 
     result = result.concat(properties);

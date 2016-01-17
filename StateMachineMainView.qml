@@ -680,7 +680,11 @@ Rectangle {
                                 balloon.visible = true;
                                 balloon.x = mouse.x + 20;
                                 balloon.y = mouse.y + 20;
-                                balloonText.text = hitTransition.signalModel.name;
+                                if (hitTransition.signalModel) {
+                                    balloonText.text = hitTransition.signalModel.name;
+                                } else {
+                                    balloonText.text = "";
+                                }
                             }
                         }
                     }
