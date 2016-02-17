@@ -536,9 +536,9 @@ Rectangle {
                     for (var i = 0; i < transitionLayer.children.length; i++) {
                         var transitionItem = transitionLayer.children[i];
                         var pos = mapToItem(transitionItem, mouseX, mouseY);
-                        console.log(pos);
+                        //console.log(pos);
                         var result = transitionItem.hitTest(pos.x, pos.y);
-                        console.log("transtion hit : " + result);
+                        //console.log("transtion hit : " + result);
                         if (result) {
                             return transitionItem;
                         }

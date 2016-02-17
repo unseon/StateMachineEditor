@@ -50,6 +50,8 @@ Rectangle {
 
                 border.color: "gray"
 
+                color: listView.currentIndex === model.index ? "yellow" : "white"
+
                 TextInput {
                     anchors.fill: parent
                     anchors.margins: 5
@@ -61,6 +63,12 @@ Rectangle {
                     onTextChanged: {
                         listView.model.get(index).name = text;
                     }
+
+                    onFocusChanged: {
+                        if (focus) {
+                            listView.currentIndex = model.index;
+                        }
+                    }
                 }
             }
 
@@ -69,11 +77,33 @@ Rectangle {
                 height: 40
 
                 Button {
-                    anchors.fill: parent
+                    anchors {
+                        top: parent.top
+                        bottom: parent.bottom
+                    }
+
+                    width: parent.width / 2
+
                     text: "+"
 
                     onClicked: {
                         listView.model.append({name:"signal"});
+                    }
+                }
+
+                Button {
+                    anchors {
+                        top: parent.top
+                        bottom: parent.bottom
+                    }
+
+                    x: parent.width / 2
+                    width: parent.width / 2
+
+                    text: "-"
+
+                    onClicked: {
+                        listView.model.remove(listView.currentIndex);
                     }
                 }
             }
