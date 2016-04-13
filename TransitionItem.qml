@@ -1,6 +1,7 @@
 import QtQuick 2.0
+import ConnectionLine 1.0
 
-Item {
+ConnectionLine {
     id: transitionItem
 
     property var model
@@ -17,6 +18,10 @@ Item {
     property var signalModel
 
     z: selected ? 1 : 0
+
+    roundness: 10
+    thickness: 1.5
+    color: "green"
 
     function typeName(obj) {
         return obj.toString().split("(")[0].split("_")[0];
@@ -35,97 +40,25 @@ Item {
         var posTo = mainView.transitionLayer.mapFromItem(to, 0, 0);
 
         if (posFrom.x < posTo.x) {
-            x = posFrom.x + from.width - 33;
-            y = posFrom.y + from.height;
-            width = posTo.x - x;
-            height = posTo.y + 15 - y;
+            startPoint.x = posFrom.x + from.width - 33;
+            startPoint.y = posFrom.y + from.height;
 
-            isForward = true;
+            endPoint.x = posTo.x
+            endPoint.y = posTo.y + 15;
+
+            startDirection = ConnectionLine.ToVertical;
         } else {
-            x = posTo.x + 33;
-            y = posTo.y + to.height;
-            width = posFrom.x - x;
-            height = posFrom.y + 37 - y;
-            isForward = false;
+            startPoint.x = posFrom.x;
+            startPoint.y = posFrom.y + 37;
+
+            endPoint.x = posTo.x + 33;
+            endPoint.y = posTo.y + to.height;
+
+            startDirection = ConnectionLine.ToVertical;
         }
         //console.log('from: ', from.x, from.y, from.width, from.height);
         //console.log('to: ', to.x, to.y, to.width, to.height);
         //console.log(x, y, width, height, isForward);
-    }
-
-    function hitTest(posX, posY) {
-        var tolerance = 5;
-
-        if (posX >= - tolerance &&  posX < tolerance && posY > 0 && posY < height - lineShape.radius) {
-            // vertical line hit test
-            return true;
-        } else if (posX >= lineShape.radius &&  posX < width && posY > height - tolerance && posY < height + tolerance) {
-            // horizontal line hit test
-            return true;
-        } else if (posX >= - tolerance && posX < lineShape.radius &&
-                   posY >= height - lineShape.radius && posY < height + tolerance) {
-            var length = Math.sqrt(Math.pow(posX - lineShape.radius, 2) + Math.pow(posY - (height - lineShape.radius), 2));
-            // round coner hit test
-            //console.log("dist:", Math.abs(length - lineShape.radius));
-            if (Math.abs(length - lineShape.radius) < tolerance) {
-                return true;
-            } else {
-                return false;
-            }
-        } else {
-            return false;
-        }
-    }
-
-    Rectangle {
-        width: parent.width + 1
-        height: parent.height
-
-        clip: true
-        color: "transparent"
-
-        Rectangle {
-            id: lineShape
-            y: - radius
-
-            width: transitionItem.width + radius
-            height: transitionItem.height + radius
-            radius: 20
-
-            color: "transparent"
-            border.width: 2
-            border.color: transitionItem.selected ? "yellow":"#39a276"
-        }
-    }
-
-    Image {
-        id: triangleDown
-
-        visible: parent.isForward
-
-        x: parent.width - width / 2 - 2
-        y: parent.height - height * 2 / 3 + 3
-
-        width: 20
-        height: 20
-        source: "qrc:/images/images/triangle-right.png"
-
-        fillMode: Image.PreserveAspectFit
-    }
-
-    Image {
-        id: triangleUp
-
-        visible: !parent.isForward
-
-        x: -width / 2
-        y: -height * 2 / 3 + 7
-
-        width: 20
-        height: 20
-        source: "qrc:/images/images/triangle-up.png"
-
-        fillMode: Image.PreserveAspectFit
     }
 }
 

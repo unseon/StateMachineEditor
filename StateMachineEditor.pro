@@ -5,7 +5,8 @@ QT += qml quick widgets
 SOURCES += main.cpp \
     metadatautil.cpp \
     fileio.cpp \
-    transitionline.cpp
+    transitionline.cpp \
+    connectionline.cpp
 
 RESOURCES += qml.qrc
 
@@ -18,5 +19,6 @@ include(deployment.pri)
 HEADERS += \
     metadatautil.h \
     fileio.h \
-    transitionline.h
+    transitionline.h \
+    connectionline.h
 
