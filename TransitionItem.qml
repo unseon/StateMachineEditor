@@ -40,9 +40,14 @@ ConnectionLine {
         var posFrom = mainView.transitionLayer.mapFromItem(from, 0, 0);
         var posTo = mainView.transitionLayer.mapFromItem(to, 0, 0);
 
-        findCommonAncestor(from, to);
+        var commonAncestor = findCommonAncestor(from, to);
 
-        if (posFrom.x < posTo.x) {
+        if (commonAncestor === from) {
+            //
+
+        } else if (commonAncestor === to){
+
+        } else if (posFrom.x < posTo.x) {
             startPoint.x = posFrom.x + from.width - 33;
             startPoint.y = posFrom.y + from.height;
 
