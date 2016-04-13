@@ -314,7 +314,7 @@ Rectangle {
             //console.log(stateItem.label + ' updateLayout called / child count:' + children.length + ' / zoomed: ' + zoomed);
 
             // update children's position and calculate size
-            var topMargin = 10;
+            var topMargin = 30;
             var vSpace = 10;
             var leftMargin = 20;
             var rightMargin = 20;

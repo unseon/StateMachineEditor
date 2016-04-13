@@ -4,6 +4,10 @@ DSM.SignalTransition{
     property string signalName
     signal: stateMachine["signalName"]
 
-    property bool isExternal
+    property bool isInternal
+
+    onIsInternalChanged: {
+        this.transitionType = isInternal;
+    }
 }
 
