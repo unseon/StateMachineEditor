@@ -36,8 +36,11 @@ ConnectionLine {
     }
 
     function update() {
+
         var posFrom = mainView.transitionLayer.mapFromItem(from, 0, 0);
         var posTo = mainView.transitionLayer.mapFromItem(to, 0, 0);
+
+        findCommonAncestor(from, to);
 
         if (posFrom.x < posTo.x) {
             startPoint.x = posFrom.x + from.width - 33;
@@ -59,6 +62,53 @@ ConnectionLine {
         //console.log('from: ', from.x, from.y, from.width, from.height);
         //console.log('to: ', to.x, to.y, to.width, to.height);
         //console.log(x, y, width, height, isForward);
+    }
+
+    function findCommonAncestor(stateA, stateB) {
+        // calculate level of state node
+
+        var levelA = 0;
+        var curStateA = stateA;
+        while (curStateA) {
+//            console.log(curStateA.label);
+            curStateA = curStateA.parentStateItem;
+            levelA++;
+        }
+
+        var levelB = 0;
+        var curStateB = stateB;
+        while (curStateB) {
+//            console.log(curStateB.label);
+            curStateB = curStateB.parentStateItem;
+            levelB++;
+        }
+
+        // move deeper state to same level of the other
+
+        curStateA = stateA;
+        curStateB = stateB;
+
+        if (levelA > levelB) {
+            for (var i = 0; i < levelA - levelB; i++) {
+                curStateA = curStateA.parentStateItem;
+            }
+        } else if (levelB > levelA) {
+            for (var i = 0; i < levelB - levelA; i++) {
+                curStateB = curStateB.parentStateItem;
+            }
+        }
+
+        // find same ancestor by iterating
+
+        while (curStateA !== curStateB) {
+
+            curStateA = curStateA.parentStateItem;
+            curStateB = curStateB.parentStateItem;
+        }
+
+//        console.log("common ancester: ", curStateA.label);
+
+        return curStateA;
     }
 }
 

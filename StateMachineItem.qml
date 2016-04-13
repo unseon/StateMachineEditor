@@ -6,5 +6,7 @@ StateItem {
     id: stateMachineItem
 
     property var signals: ListModel{}
+
+    property var parentStateItem: null
 }
 

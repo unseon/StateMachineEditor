@@ -52,6 +52,8 @@ Rectangle {
 
     property bool isStateItem: true
 
+    property var parentStateItem: (parent && parent.parent ) ? parent.parent : null
+
     Component.onCompleted: {
         //console.log(label + " completed / state: " + state);
         //content.updateLayout();
