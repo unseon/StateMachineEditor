@@ -19,7 +19,7 @@ ConnectionLine {
 
     z: selected ? 1 : 0
 
-    roundness: 10
+    roundness: 20
     thickness: 1.5
     color: "green"
 
@@ -44,8 +44,22 @@ ConnectionLine {
 
         if (commonAncestor === from) {
             //
+            startPoint.x = posFrom.x + 40;
+            startPoint.y = posFrom.y + from.content.y;
+
+            endPoint.x = posTo.x;
+            endPoint.y = posTo.y + 15;
+
+            startDirection = ConnectionLine.ToVertical;
 
         } else if (commonAncestor === to){
+            startPoint.x = posFrom.x;
+            startPoint.y = posFrom.y + 33;
+
+            endPoint.x = posTo.x + 20;
+            endPoint.y = posTo.y + to.content.y;
+
+            startDirection = ConnectionLine.ToHorizontal;
 
         } else if (posFrom.x < posTo.x) {
             startPoint.x = posFrom.x + from.width - 33;
@@ -55,15 +69,20 @@ ConnectionLine {
             endPoint.y = posTo.y + 15;
 
             startDirection = ConnectionLine.ToVertical;
+            console.log("forward: ", startPoint, endPoint, startDirection);
         } else {
             startPoint.x = posFrom.x;
-            startPoint.y = posFrom.y + 37;
+            startPoint.y = posFrom.y + 33;
 
             endPoint.x = posTo.x + 33;
             endPoint.y = posTo.y + to.height;
 
-            startDirection = ConnectionLine.ToVertical;
+            startDirection = ConnectionLine.ToHorizontal;
+
+            console.log("backward: ", startPoint, endPoint, startDirection);
         }
+
+
         //console.log('from: ', from.x, from.y, from.width, from.height);
         //console.log('to: ', to.x, to.y, to.width, to.height);
         //console.log(x, y, width, height, isForward);
@@ -111,7 +130,7 @@ ConnectionLine {
             curStateB = curStateB.parentStateItem;
         }
 
-//        console.log("common ancester: ", curStateA.label);
+        console.log("common ancester: ", curStateA.label);
 
         return curStateA;
     }

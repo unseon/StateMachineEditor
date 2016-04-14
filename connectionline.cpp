@@ -39,6 +39,8 @@ void ConnectionLine::updateRect()
     path = QPainterPath();
     arrow = QPainterPath();
 
+    qDebug() << "Test" << m_startDirection;
+
     if (m_startPoint.y() == m_endPoint.y() && m_startPoint.x() < m_endPoint.x()) {
         // draw horizontal straight right line
         startPoint = m_startPoint - QPointF(x(), y());
@@ -75,8 +77,8 @@ void ConnectionLine::updateRect()
         arrow.lineTo(endPoint.x() + m_thickness * 3, endPoint.y() + m_thickness * 5);
 
     } else if (m_startDirection == ToHorizontal && m_startPoint.x() > m_endPoint.x()) {
-        startPoint = m_startPoint - QPointF(x() - m_thickness / 2, y());
-        endPoint = m_endPoint - QPointF(x(), y() + m_thickness / 2);
+        startPoint = m_startPoint - QPointF(x() + m_thickness / 2, y());
+        endPoint = m_endPoint - QPointF(x(), y() - m_thickness / 2);
         midPoint = QPointF(endPoint.x(), startPoint.y());
 
         path.moveTo(startPoint);
@@ -89,7 +91,6 @@ void ConnectionLine::updateRect()
         arrow.moveTo(endPoint.x() - m_thickness * 3, endPoint.y() + m_thickness * 5);
         arrow.lineTo(endPoint);
         arrow.lineTo(endPoint.x() + m_thickness * 3, endPoint.y() + m_thickness * 5);
-
     } else if (m_startDirection == ToVertical && m_startPoint.x() < m_endPoint.x()) {
         startPoint = m_startPoint - QPointF(x(), y() - m_thickness / 2);
         endPoint = m_endPoint - QPointF(x() + m_thickness / 2, y());
@@ -142,7 +143,10 @@ void ConnectionLine::setStartDirection(const StartDirection &dir)
 {
     if (m_startDirection != dir) {
         m_startDirection = dir;
+        qDebug() << "startDirectionChanged: " << m_startDirection;
         emit startDirectionChanged();
+
+        updateRect();
     }
 }
 

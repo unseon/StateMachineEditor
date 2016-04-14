@@ -318,7 +318,7 @@ Rectangle {
             // update children's position and calculate size
             var topMargin = 10;
             var vSpace = 10;
-            var childMargin = 20;
+            var childMargin = 60;
             var leftMargin = 20;
             var rightMargin = 20;
 
@@ -337,7 +337,7 @@ Rectangle {
                 posX = 100;
             } else {
                 leftMargin += childMargin;
-                rightMargin += childMargin;
+                //rightMargin += childMargin;
 
                 posX = leftMargin;
 
