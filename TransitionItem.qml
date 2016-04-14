@@ -11,6 +11,10 @@ ConnectionLine {
     property bool isForward
     property bool selected : false
 
+    onSelectedChanged: {
+        console.log("selectedChanged");
+    }
+
     property bool isTransitionItem: true
 
     property string type: "SignalTransition"
@@ -21,7 +25,7 @@ ConnectionLine {
 
     roundness: 20
     thickness: 1.5
-    color: "green"
+    color: selected ? "yellow" : "green"
 
     function typeName(obj) {
         return obj.toString().split("(")[0].split("_")[0];

@@ -285,6 +285,7 @@ Rectangle {
         stateItem.label = name;
         stateItem.type = "State";
         cursor.currentContent.insertChildAt(stateItem, cursor.currentIndex);
+        cursor.currentIndex++;
 
         updateLayout();
     }
@@ -374,11 +375,11 @@ Rectangle {
     //            }
 
                 property var currentContent
-                property int currentIndex
+                property int currentIndex: 0
 
                 function update() {
-                    currentContent = mainView.stateMachineItem.content;
-                    currentIndex = 0;
+                    currentContent = currentContent || mainView.stateMachineItem.content;
+                    //currentIndex = 0;
                     updatePosition();
                 }
 
@@ -386,13 +387,27 @@ Rectangle {
                     var content = currentContent;
                     var idx = currentIndex;
                     var localX, localY;
-                    if (idx === 0) {
+
+                    console.log("idx: ", idx, content.children.length);
+
+                    if (content.children.length === 0) {
                         localX = 5;
                         localY = 5;
-                    } else {
+                    } else if (idx === content.children.length) {
                         localX = content.children[idx - 1].x + content.children[idx - 1].width;
                         localY = content.children[idx - 1].y + content.children[idx - 1].height;
+                    } else {
+                        localX = content.children[idx].x - 5;
+                        localY = content.children[idx].y - 5;
                     }
+
+//                    if (idx === 0) {
+//                        localX = 5;
+//                        localY = 5;
+//                    } else {
+//                        localX = content.children[idx - 1].x + content.children[idx - 1].width;
+//                        localY = content.children[idx - 1].y + content.children[idx - 1].height;
+//                    }
 
                     var helperPos = parent.mapFromItem(content, localX, localY);
 
