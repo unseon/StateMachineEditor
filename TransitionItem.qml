@@ -23,7 +23,7 @@ ConnectionLine {
 
     z: selected ? 1 : 0
 
-    roundness: 20
+    roundness: 15
     thickness: 1.5
     color: selected ? "yellow" : "green"
 
@@ -48,22 +48,24 @@ ConnectionLine {
 
         if (commonAncestor === from) {
             //
-            startPoint.x = posFrom.x + 40;
+            startPoint.x = posFrom.x + 20;
             startPoint.y = posFrom.y + from.content.y;
 
             endPoint.x = posTo.x;
             endPoint.y = posTo.y + 15;
 
             startDirection = ConnectionLine.ToVertical;
+            roundness = 5;
 
         } else if (commonAncestor === to){
             startPoint.x = posFrom.x;
             startPoint.y = posFrom.y + 33;
 
-            endPoint.x = posTo.x + 20;
+            endPoint.x = posTo.x + 10;
             endPoint.y = posTo.y + to.content.y;
 
             startDirection = ConnectionLine.ToHorizontal;
+            roundness = 5;
 
         } else if (posFrom.x < posTo.x) {
             startPoint.x = posFrom.x + from.width - 33;

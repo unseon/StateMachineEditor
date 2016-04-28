@@ -319,5 +319,18 @@ ApplicationWindow {
             }
         }
     }
+
+    Rectangle {
+        anchors.fill: parent
+        visible: !mainView.targetStateMachine
+
+        Button {
+            text: "New File"
+            anchors.centerIn: parent
+            onClicked: {
+                newFile();
+            }
+        }
+    }
 }
 
