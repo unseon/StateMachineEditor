@@ -76,8 +76,6 @@ ApplicationWindow {
             initialState: state1
             objectName: "stateMachine"
 
-            signal machineTest
-
             FSM.State {
                 id: state1
                 objectName: "state1"
@@ -122,31 +120,86 @@ ApplicationWindow {
     toolBar: ToolBar {
         RowLayout {
             anchors.fill: parent
+
             ToolButton {
-                action: createStateAction
+                //action: createStateAction
 
                 Layout.fillWidth: false
                 Layout.preferredWidth: 50
+                Layout.preferredHeight: 50
+
+                Image {
+                    anchors.fill: parent
+                    source: "qrc:/images/images/icons/icon_create_state.svg"
+                    fillMode: Image.PreserveAspectFit
+
+                    sourceSize.width: width
+                    sourceSize.height: height
+                }
+
+                onClicked: {
+                    createStateAction.trigger();
+                }
             }
 
             ToolButton {
-                action: removeStateAction
+                //action: removeStateAction
                 Layout.fillWidth: false
                 Layout.preferredWidth: 50
+                Layout.preferredHeight: 50
+
+                Image {
+                    anchors.fill: parent
+                    source: "qrc:/images/images/icons/icon_delete_state.svg"
+                    fillMode: Image.PreserveAspectFit
+
+                    sourceSize.width: width
+                    sourceSize.height: height
+                }
+
+                onClicked: {
+                    removeStateAction.trigger();
+                }
             }
 
             ToolButton {
-                action: createTransitionAction
+                //action: createTransitionAction
 
                 Layout.fillWidth: false
                 Layout.preferredWidth: 50
+
+                Image {
+                    anchors.fill: parent
+                    source: "qrc:/images/images/icons/icon_create_transition.svg"
+                    fillMode: Image.PreserveAspectFit
+
+                    sourceSize.width: width
+                    sourceSize.height: height
+                }
+
+                onClicked: {
+                    createTransitionAction.trigger();
+                }
             }
 
             ToolButton {
-                action: removeTransitionAction
+                //action: removeTransitionAction
 
                 Layout.fillWidth: false
                 Layout.preferredWidth: 50
+
+                Image {
+                    anchors.fill: parent
+                    source: "qrc:/images/images/icons/icon_delete_transition.svg"
+                    fillMode: Image.PreserveAspectFit
+
+                    sourceSize.width: width
+                    sourceSize.height: height
+                }
+
+                onClicked: {
+                    removeTransitionAction.trigger();
+                }
             }
 
             Item { Layout.fillWidth: true }
@@ -156,14 +209,14 @@ ApplicationWindow {
     Action {
         id: createStateAction
         text: qsTr("Insert State");
-        iconSource: "qrc:/images/images/icons/plus.png"
+        //iconSource: "qrc:/images/images/icons/icon_create_state.svg"
         onTriggered: mainView.createState();
     }
 
     Action {
         id: removeStateAction
         text: qsTr("Remove State");
-        iconSource: "qrc:/images/images/icons/minus.png"
+        iconSource: "qrc:/images/images/icons/icon_delete_state.svg"
         onTriggered: mainView.removeState();
     }
 
@@ -223,7 +276,7 @@ ApplicationWindow {
 
                 MenuItem {
                     text: model.name
-                    onTriggered: mainView.assignSignal(model.name)
+                    onTriggered: mainView.assignSignal(model)
                 }
 
                 onObjectAdded: signalAssign.insertItem(index, object)
@@ -263,6 +316,19 @@ ApplicationWindow {
 
             Component.onCompleted: {
                 //targetState = sampleButton.stateMachine;
+            }
+        }
+    }
+
+    Rectangle {
+        anchors.fill: parent
+        visible: !mainView.targetStateMachine
+
+        Button {
+            text: "New File"
+            anchors.centerIn: parent
+            onClicked: {
+                newFile();
             }
         }
     }

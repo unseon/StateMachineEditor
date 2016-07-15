@@ -1,6 +1,7 @@
 import QtQuick 2.0
+import ConnectionLine 1.0
 
-Item {
+ConnectionLine {
     id: transitionItem
 
     property var model
@@ -10,13 +11,21 @@ Item {
     property bool isForward
     property bool selected : false
 
+    onSelectedChanged: {
+        console.log("selectedChanged");
+    }
+
     property bool isTransitionItem: true
 
     property string type: "SignalTransition"
 
-    property var signalName
+    property var signalModel
 
     z: selected ? 1 : 0
+
+    roundness: 15
+    thickness: 1.5
+    color: selected ? "yellow" : "green"
 
     function typeName(obj) {
         return obj.toString().split("(")[0].split("_")[0];
@@ -28,105 +37,108 @@ Item {
 
         type = typeName(model);
         objectName = model.objectName;
-        signalName = model.signalName;
     }
 
     function update() {
+
         var posFrom = mainView.transitionLayer.mapFromItem(from, 0, 0);
         var posTo = mainView.transitionLayer.mapFromItem(to, 0, 0);
 
-        if (posFrom.x < posTo.x) {
-            x = posFrom.x + from.width - 33;
-            y = posFrom.y + from.height;
-            width = posTo.x - x;
-            height = posTo.y + 15 - y;
+        var commonAncestor = findCommonAncestor(from, to);
 
-            isForward = true;
+        if (commonAncestor === from) {
+            //
+            startPoint.x = posFrom.x + 20;
+            startPoint.y = posFrom.y + from.content.y;
+
+            endPoint.x = posTo.x;
+            endPoint.y = posTo.y + 15;
+
+            startDirection = ConnectionLine.ToVertical;
+            roundness = 5;
+
+        } else if (commonAncestor === to){
+            startPoint.x = posFrom.x;
+            startPoint.y = posFrom.y + 33;
+
+            endPoint.x = posTo.x + 10;
+            endPoint.y = posTo.y + to.content.y;
+
+            startDirection = ConnectionLine.ToHorizontal;
+            roundness = 5;
+
+        } else if (posFrom.x < posTo.x) {
+            startPoint.x = posFrom.x + from.width - 33;
+            startPoint.y = posFrom.y + from.height;
+
+            endPoint.x = posTo.x
+            endPoint.y = posTo.y + 15;
+
+            startDirection = ConnectionLine.ToVertical;
+            console.log("forward: ", startPoint, endPoint, startDirection);
         } else {
-            x = posTo.x + 33;
-            y = posTo.y + to.height;
-            width = posFrom.x - x;
-            height = posFrom.y + 37 - y;
-            isForward = false;
+            startPoint.x = posFrom.x;
+            startPoint.y = posFrom.y + 33;
+
+            endPoint.x = posTo.x + 33;
+            endPoint.y = posTo.y + to.height;
+
+            startDirection = ConnectionLine.ToHorizontal;
+
+            console.log("backward: ", startPoint, endPoint, startDirection);
         }
+
+
         //console.log('from: ', from.x, from.y, from.width, from.height);
         //console.log('to: ', to.x, to.y, to.width, to.height);
         //console.log(x, y, width, height, isForward);
     }
 
-    function hitTest(posX, posY) {
-        var tolerance = 5;
+    function findCommonAncestor(stateA, stateB) {
+        // calculate level of state node
 
-        if (posX >= - tolerance &&  posX < tolerance && posY > 0 && posY < height - lineShape.radius) {
-            // vertical line hit test
-            return true;
-        } else if (posX >= lineShape.radius &&  posX < width && posY > height - tolerance && posY < height + tolerance) {
-            // horizontal line hit test
-            return true;
-        } else if (posX >= - tolerance && posX < lineShape.radius &&
-                   posY >= height - lineShape.radius && posY < height + tolerance) {
-            var length = Math.sqrt(Math.pow(posX - lineShape.radius, 2) + Math.pow(posY - (height - lineShape.radius), 2));
-            // round coner hit test
-            //console.log("dist:", Math.abs(length - lineShape.radius));
-            if (Math.abs(length - lineShape.radius) < tolerance) {
-                return true;
-            } else {
-                return false;
+        var levelA = 0;
+        var curStateA = stateA;
+        while (curStateA) {
+//            console.log(curStateA.label);
+            curStateA = curStateA.parentStateItem;
+            levelA++;
+        }
+
+        var levelB = 0;
+        var curStateB = stateB;
+        while (curStateB) {
+//            console.log(curStateB.label);
+            curStateB = curStateB.parentStateItem;
+            levelB++;
+        }
+
+        // move deeper state to same level of the other
+
+        curStateA = stateA;
+        curStateB = stateB;
+
+        if (levelA > levelB) {
+            for (var i = 0; i < levelA - levelB; i++) {
+                curStateA = curStateA.parentStateItem;
             }
-        } else {
-            return false;
+        } else if (levelB > levelA) {
+            for (var i = 0; i < levelB - levelA; i++) {
+                curStateB = curStateB.parentStateItem;
+            }
         }
-    }
 
-    Rectangle {
-        width: parent.width + 1
-        height: parent.height
+        // find same ancestor by iterating
 
-        clip: true
-        color: "transparent"
+        while (curStateA !== curStateB) {
 
-        Rectangle {
-            id: lineShape
-            y: - radius
-
-            width: transitionItem.width + radius
-            height: transitionItem.height + radius
-            radius: 20
-
-            color: "transparent"
-            border.width: 2
-            border.color: transitionItem.selected ? "yellow":"#39a276"
+            curStateA = curStateA.parentStateItem;
+            curStateB = curStateB.parentStateItem;
         }
-    }
 
-    Image {
-        id: triangleDown
+        console.log("common ancester: ", curStateA.label);
 
-        visible: parent.isForward
-
-        x: parent.width - width / 2 - 2
-        y: parent.height - height * 2 / 3 + 3
-
-        width: 20
-        height: 20
-        source: "qrc:/images/images/triangle-right.png"
-
-        fillMode: Image.PreserveAspectFit
-    }
-
-    Image {
-        id: triangleUp
-
-        visible: !parent.isForward
-
-        x: -width / 2
-        y: -height * 2 / 3 + 7
-
-        width: 20
-        height: 20
-        source: "qrc:/images/images/triangle-up.png"
-
-        fillMode: Image.PreserveAspectFit
+        return curStateA;
     }
 }
 

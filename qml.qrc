@@ -23,5 +23,9 @@
         <file>images/triangle-up.png</file>
         <file>images/triangle-left.png</file>
         <file>images/triangle-right.png</file>
+        <file>images/icons/icon_create_state.svg</file>
+        <file>images/icons/icon_delete_state.svg</file>
+        <file>images/icons/icon_create_transition.svg</file>
+        <file>images/icons/icon_delete_transition.svg</file>
     </qresource>
 </RCC>

@@ -52,6 +52,8 @@ Rectangle {
 
     property bool isStateItem: true
 
+    property var parentStateItem: (parent && parent.parent ) ? parent.parent : null
+
     Component.onCompleted: {
         //console.log(label + " completed / state: " + state);
         //content.updateLayout();
@@ -203,6 +205,10 @@ Rectangle {
                     horizontalAlignment: Text.AlignHCenter
                     verticalAlignment: Text.AlignVCenter
                     text: stateItem.label
+
+                    onTextChanged: {
+                        stateItem.label = text;
+                    }
                 }
             }
         }
@@ -312,10 +318,12 @@ Rectangle {
             // update children's position and calculate size
             var topMargin = 10;
             var vSpace = 10;
+            var childMargin = 20;
             var leftMargin = 20;
             var rightMargin = 20;
+
             var hSpace = 10;
-            var posX = leftMargin;
+            var posX;
             var posY = topMargin;
 
             if (children.length === 0) {
@@ -328,6 +336,11 @@ Rectangle {
 
                 posX = 100;
             } else {
+                leftMargin += childMargin;
+                //rightMargin += childMargin;
+
+                posX = leftMargin;
+
                 for (var i = 0; i < children.length; i++) {
                     var child = children[i];
                     child.updateLayout();

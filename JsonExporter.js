@@ -87,8 +87,8 @@ function writeTransition(transition, indent) {
         'type': transition.type
     };
 
-    if (transition.signalName) {
-        transitionJson.signalName = transition.signalName;
+    if (transition.signalModel) {
+        transitionJson.signalName = transition.signalModel.name;
     }
 
     return transitionJson;

@@ -59,8 +59,9 @@ Rectangle {
         stateItem.selected = true;
     }
 
-    function assignSignal(signalName) {
-        selectedItem.signalName = signalName;
+    function assignSignal(signalModel) {
+        //selectedItem.signalName = signalName;
+        selectedItem.signalModel = signalModel;
     }
 
     function unselectAll() {
@@ -215,6 +216,7 @@ Rectangle {
                 var transitionModel = transitionList[i];
                 var transitionItem = transitionComponent.createObject(transitionLayer);
                 transitionItem.model = transitionModel;
+                transitionItem.signalModel = getSignalModelByName(transitionModel.signalName)
             }
 
             visible = true;
@@ -223,6 +225,18 @@ Rectangle {
         } else {
             visible = false;
         }
+    }
+
+    function getSignalModelByName(signalName) {
+        for (var i = 0; i < signals.count; i++) {
+
+            if (signals.get(i).name === signalName) {
+
+                return signals.get(i);
+            }
+        }
+
+        return null;
     }
 
     function getSignalEntity(signalObject) {
@@ -271,6 +285,7 @@ Rectangle {
         stateItem.label = name;
         stateItem.type = "State";
         cursor.currentContent.insertChildAt(stateItem, cursor.currentIndex);
+        cursor.currentIndex++;
 
         updateLayout();
     }
@@ -360,11 +375,11 @@ Rectangle {
     //            }
 
                 property var currentContent
-                property int currentIndex
+                property int currentIndex: 0
 
                 function update() {
-                    currentContent = mainView.stateMachineItem.content;
-                    currentIndex = 0;
+                    currentContent = currentContent || mainView.stateMachineItem.content;
+                    //currentIndex = 0;
                     updatePosition();
                 }
 
@@ -372,13 +387,27 @@ Rectangle {
                     var content = currentContent;
                     var idx = currentIndex;
                     var localX, localY;
-                    if (idx === 0) {
+
+                    console.log("idx: ", idx, content.children.length);
+
+                    if (content.children.length === 0) {
                         localX = 5;
                         localY = 5;
-                    } else {
+                    } else if (idx === content.children.length) {
                         localX = content.children[idx - 1].x + content.children[idx - 1].width;
                         localY = content.children[idx - 1].y + content.children[idx - 1].height;
+                    } else {
+                        localX = content.children[idx].x - 5;
+                        localY = content.children[idx].y - 5;
                     }
+
+//                    if (idx === 0) {
+//                        localX = 5;
+//                        localY = 5;
+//                    } else {
+//                        localX = content.children[idx - 1].x + content.children[idx - 1].width;
+//                        localY = content.children[idx - 1].y + content.children[idx - 1].height;
+//                    }
 
                     var helperPos = parent.mapFromItem(content, localX, localY);
 
@@ -437,6 +466,24 @@ Rectangle {
 
                 anchors.fill: parent
                 color: "transparent"
+            }
+
+            Rectangle {
+                id: balloon
+
+                color: "yellow"
+                width: 150
+                height: 60
+
+                opacity: 0.5
+
+                Text {
+                    id: balloonText
+                    anchors.fill: parent
+                    anchors.margins: 5
+                }
+
+                visible: false
             }
 
             MouseArea {
@@ -504,9 +551,9 @@ Rectangle {
                     for (var i = 0; i < transitionLayer.children.length; i++) {
                         var transitionItem = transitionLayer.children[i];
                         var pos = mapToItem(transitionItem, mouseX, mouseY);
-                        console.log(pos);
+                        //console.log(pos);
                         var result = transitionItem.hitTest(pos.x, pos.y);
-                        console.log("transtion hit : " + result);
+                        //console.log("transtion hit : " + result);
                         if (result) {
                             return transitionItem;
                         }
@@ -634,9 +681,27 @@ Rectangle {
                 }
 
                 onPositionChanged: {
+                    balloon.visible = false;
+
                     if (drag.active) {
                         updateCursor(mouse);
                         focusedContent = cursor.currentContent;
+                    } else {
+                        var hit = getHit(mouse.x, mouse.y);
+                        if (hit.objectName === "content") {
+                            var hitTransition = transitionHitTest(mouse.x, mouse.y);
+                            if (hitTransition) {
+                                console.log("transition hitted");
+                                balloon.visible = true;
+                                balloon.x = mouse.x + 20;
+                                balloon.y = mouse.y + 20;
+                                if (hitTransition.signalModel) {
+                                    balloonText.text = hitTransition.signalModel.name;
+                                } else {
+                                    balloonText.text = "";
+                                }
+                            }
+                        }
                     }
                 }
 
