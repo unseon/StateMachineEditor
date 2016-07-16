@@ -17,7 +17,8 @@ ApplicationWindow {
 
     property string fileUrl
 
-    menuBar: MenuBar {
+    MenuBar {
+        id: basicMenuBar
         Menu {
             title: qsTr("File")
 
@@ -118,6 +119,7 @@ ApplicationWindow {
     }
 
     toolBar: ToolBar {
+        visible: mainView.targetStateMachine
         RowLayout {
             anchors.fill: parent
 
@@ -329,6 +331,79 @@ ApplicationWindow {
             anchors.centerIn: parent
             onClicked: {
                 newFile();
+            }
+        }
+    }
+
+    Window {
+        id: headTap
+        //x: applicationWindow.x + 100
+
+        property int titleBarHeight: 22
+
+
+        width: applicationWindow.width - 400
+        height: titleBarHeight
+
+        color: "#20DD0020"
+
+        flags: Qt.SubWindow
+
+        Component.onCompleted: {
+            x = applicationWindow.x + 100;
+            y = applicationWindow.y - titleBarHeight;
+            visible = false;
+        }
+
+        MouseArea {
+            anchors.fill: parent
+            property point orgPos: "0, 0"
+
+            onPressed: {
+                orgPos.x = mouse.x;
+                orgPos.y = mouse.y;
+            }
+
+            onPositionChanged: {
+                headTap.x += mouse.x - orgPos.x;
+                headTap.y += mouse.y - orgPos.y;
+                applicationWindow.x = headTap.x - 100;
+                applicationWindow.y = headTap.y + headTap.height;
+            }
+        }
+
+        Item {
+            anchors.fill: parent
+            Row {
+                anchors.fill: parent
+                Rectangle {
+                    width: 100
+                    height: parent.height
+                    color: "yellow"
+
+                    radius: 4
+                    border.width: 1
+                }
+
+                Rectangle {
+                    width: 100
+                    height: parent.height
+                    color: "yellow"
+
+                    radius: 4
+                    border.width: 1
+
+                }
+
+                Rectangle {
+                    width: 100
+                    height: parent.height
+                    color: "yellow"
+
+                    radius: 4
+                    border.width: 1
+
+                }
             }
         }
     }

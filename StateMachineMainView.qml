@@ -257,14 +257,10 @@ Rectangle {
     function createUniqueStateName() {
         // state + {number}
         var prefix = "state";
-        var name = prefix;
-        if(findStateByName(name) !== null) {
-
-            for (var i = 0; i < 1000; i++) {
-                name = prefix + i;
-                if (findStateByName(name) === null) {
-                    break;
-                }
+        for (var i = 1; i < 1000; i++) {
+            var name = prefix + i;
+            if (findStateByName(name) === null) {
+                break;
             }
         }
 

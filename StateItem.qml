@@ -187,7 +187,7 @@ Rectangle {
                 height: parent.height + radius + 2
                 radius: stateItem.isInitialState ? 0 : 10
 
-                color: "#CCEEAA"
+                color: labelEdit.readOnly ? "#CCEEAA" : "white"
                 border.width: 2
                 border.color: stateItem.draggingFocused ? "#c9dfa0" : ( stateItem.selected ? "#40af30" : "#9Ab29A" )
             }
@@ -208,6 +208,11 @@ Rectangle {
 
                     onTextChanged: {
                         stateItem.label = text;
+                    }
+
+                    onEditingFinished: {
+                        stateItem.forceActiveFocus();
+                        stateItem.state = "";
                     }
                 }
             }
