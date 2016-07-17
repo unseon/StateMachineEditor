@@ -5,15 +5,8 @@ import QtQuick.Controls 1.4
 StateItem {
     id: stateMachineItem
 
-    width: 0
-    height: 0
+    property var signals: ListModel{}
 
-    onWidthChanged: {
-        console.log("top level width changed: " + width );
-    }
-
-    onHeightChanged: {
-        console.log("top level height changed: " + height );
-    }
+    property var parentStateItem: null
 }
 

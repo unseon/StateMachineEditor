@@ -34,7 +34,7 @@ Rectangle {
     property var target
 
     property string label: "untitled"
-    property string type: "state"
+    property string type: "State"
 
     property alias labelEdit: labelEdit
 
@@ -51,6 +51,8 @@ Rectangle {
     property var transitions: []
 
     property bool isStateItem: true
+
+    property var parentStateItem: (parent && parent.parent ) ? parent.parent : null
 
     Component.onCompleted: {
         //console.log(label + " completed / state: " + state);
@@ -79,6 +81,21 @@ Rectangle {
             width = content.width
             height = headerRect.height + content.height
        }
+    }
+
+    function findByName(name) {
+        if (label === name) {
+            return this;
+        } else {
+            for (var i = 0; i < content.children.length; i++) {
+                var child = content.children[i];
+                if (child.findByName(name)) {
+                    return child;
+                }
+            }
+
+            return null;
+        }
     }
 
     onZoomedChanged: {
@@ -139,7 +156,7 @@ Rectangle {
     }
 
     function typeName(obj) {
-        return obj.toString().split("(")[0];
+        return obj.toString().split("(")[0].split("_")[0];
     }
 
     Rectangle {
@@ -170,7 +187,7 @@ Rectangle {
                 height: parent.height + radius + 2
                 radius: stateItem.isInitialState ? 0 : 10
 
-                color: "#CCEEAA"
+                color: labelEdit.readOnly ? "#CCEEAA" : "white"
                 border.width: 2
                 border.color: stateItem.draggingFocused ? "#c9dfa0" : ( stateItem.selected ? "#40af30" : "#9Ab29A" )
             }
@@ -188,6 +205,15 @@ Rectangle {
                     horizontalAlignment: Text.AlignHCenter
                     verticalAlignment: Text.AlignVCenter
                     text: stateItem.label
+
+                    onTextChanged: {
+                        stateItem.label = text;
+                    }
+
+                    onEditingFinished: {
+                        stateItem.forceActiveFocus();
+                        stateItem.state = "";
+                    }
                 }
             }
         }
@@ -297,10 +323,12 @@ Rectangle {
             // update children's position and calculate size
             var topMargin = 10;
             var vSpace = 10;
+            var childMargin = 20;
             var leftMargin = 20;
             var rightMargin = 20;
+
             var hSpace = 10;
-            var posX = leftMargin;
+            var posX;
             var posY = topMargin;
 
             if (children.length === 0) {
@@ -313,6 +341,11 @@ Rectangle {
 
                 posX = 100;
             } else {
+                leftMargin += childMargin;
+                //rightMargin += childMargin;
+
+                posX = leftMargin;
+
                 for (var i = 0; i < children.length; i++) {
                     var child = children[i];
                     child.updateLayout();

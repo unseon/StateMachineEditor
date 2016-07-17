@@ -1,11 +1,14 @@
 import QtQuick 2.0
 import QtQuick.Controls 1.4
 
+import "QmlExporter.js" as QmlExporter
+import "JsonExporter.js" as JsonExporter
+
 Rectangle {
     id: mainView
     color: "#ececec"
 
-    property var targetState: null
+    property var targetStateMachine: null
     property var stateMachineItem: null
 
     property var selectedItem: null
@@ -14,10 +17,19 @@ Rectangle {
 
     property alias helper: helper
     property alias mouseHelper: mouseHelper
-    property alias curosr: cursor
+    property alias cursor: cursor
     property alias transitionLayer: transitionLayer
 
     property var stateTable: [] // [stateModel, stateItem]
+
+    property int signalIndex: 28
+    property var signals: ListModel{}
+
+
+    Component.onCompleted: {
+        //console.log(JSON.stringify(this));
+
+    }
 
     onSelectedItemChanged: {
         if (selectedItem === null) {
@@ -34,9 +46,22 @@ Rectangle {
         console.log("onSelectedItemsChanged");
     }
 
+    function save(fileUrl) {
+        QmlExporter.save(fileUrl, stateMachineItem);
+    }
+
+    function exportToJson(fileUrl) {
+        JsonExporter.save(fileUrl, stateMachineItem);
+    }
+
     function addSelectionItem(stateItem) {
         selectedItems.push(stateItem);
         stateItem.selected = true;
+    }
+
+    function assignSignal(signalModel) {
+        //selectedItem.signalName = signalName;
+        selectedItem.signalModel = signalModel;
     }
 
     function unselectAll() {
@@ -115,13 +140,13 @@ Rectangle {
 
     function getTransitionList() {
         var transitionList = [];
-        buildTransitionOnModel(targetState, transitionList);
+        buildTransitionOnModel(targetStateMachine, transitionList);
 
         return transitionList;
     }
 
     function typeName(obj) {
-        return obj.toString().split("(")[0];
+        return obj.toString().split("(")[0].split("_")[0];
     }
 
     function buildTransitionOnModel(model, list) {
@@ -131,9 +156,6 @@ Rectangle {
 
             if (childType === "SignalTransition" || childType === "TimeoutTransition") {
                 var transition = child;
-                var from = transition.sourceState;
-                var to = transition.targetState;
-
                 list.push(transition);
             } else if (childType === "State") {
                 buildTransitionOnModel(child, list);
@@ -151,7 +173,7 @@ Rectangle {
         return null;
     }
 
-    property Component stateMachineComponent: Component {
+    property Component stateMachineItemComponent: Component {
         StateMachineItem{
 
         }
@@ -169,14 +191,24 @@ Rectangle {
         }
     }
 
-    onTargetStateChanged: {
-        if (targetState) {
+    onTargetStateMachineChanged: {
+        if (targetStateMachine) {
             //var topState = stateComponent.createObject(stage, {"width": mainView.width, "height": mainView.height});
-            stateMachineItem = stateMachineComponent.createObject(stage);//, {"target": targetState});
-            stateMachineItem.zoomed = true;
-            stateMachineItem.target = targetState;
-            stateMachineItem.width = Qt.binding(function(){return mainView.width});
-            stateMachineItem.height = Qt.binding(function(){return mainView.height});
+            stateMachineItem = stateMachineItemComponent.createObject(stage);//, {"target": targetState});
+            //stateMachineItem.zoomed = true;
+            stateMachineItem.target = targetStateMachine;
+            //stateMachineItem.width = Qt.binding(function(){return mainView.width});
+            //stateMachineItem.height = Qt.binding(function(){return mainView.height});
+
+            // import signal list
+            var properties = Object.keys(targetStateMachine);
+            for (var i = signalIndex; i < properties.length; i++) {
+                console.log(properties[i] + "=" + targetStateMachine[properties[i]]);
+                signals.append({"name": properties[i], "propertyIndex": i});
+
+            }
+
+            stateMachineItem.signals = signals;
 
             var transitionList = getTransitionList();
 
@@ -184,16 +216,72 @@ Rectangle {
                 var transitionModel = transitionList[i];
                 var transitionItem = transitionComponent.createObject(transitionLayer);
                 transitionItem.model = transitionModel;
+                transitionItem.signalModel = getSignalModelByName(transitionModel.signalName)
             }
 
+            visible = true;
+
             updateLayout();
+        } else {
+            visible = false;
         }
     }
 
+    function getSignalModelByName(signalName) {
+        for (var i = 0; i < signals.count; i++) {
+
+            if (signals.get(i).name === signalName) {
+
+                return signals.get(i);
+            }
+        }
+
+        return null;
+    }
+
+    function getSignalEntity(signalObject) {
+        console.log("signalObject:" + signalObject);
+
+
+        for (var i = 0; i < signals.count; i++) {
+
+            if (targetStateMachine[signals.get(i).propertyIndex] === signalObject) {
+
+                return signals.get(i);
+            }
+        }
+
+        return false;
+    }
+
+    function createUniqueStateName() {
+        // state + {number}
+        var prefix = "state";
+        for (var i = 1; i < 1000; i++) {
+            var name = prefix + i;
+            if (findStateByName(name) === null) {
+                break;
+            }
+        }
+
+        return name;
+    }
+
+    function findStateByName(name) {
+        var item = stateMachineItem.findByName(name);
+        console.log("found name: " + name);
+        console.log("found name: " + (item?item.label:null));
+        return item;
+    }
+
     function createState() {
+        var name = createUniqueStateName();
+
         var stateItem = stateItemComponent.createObject(stage);
-        stateItem.label = "new state";
+        stateItem.label = name;
+        stateItem.type = "State";
         cursor.currentContent.insertChildAt(stateItem, cursor.currentIndex);
+        cursor.currentIndex++;
 
         updateLayout();
     }
@@ -222,372 +310,465 @@ Rectangle {
             var transitionItem = transitionLayer.children[i];
             transitionItem.update();
         }
+
+        cursor.update();
     }
 
-    Rectangle {
-        id: stage
-        color: "#FBFFFA"
+    ScrollView {
+        id: scrollFrame
+        //color: "#FBFFFA"
         anchors.fill: parent
-    }
 
-    Rectangle {
-        id: transitionLayer
+        flickableItem.rebound: null
 
-        opacity: mainView.state === "dragging" ? 0.2 : 1.0
-        color: "transparent"
-        anchors.fill: parent
-    }
 
-    Rectangle {
-        id: helper
-
-        anchors.fill: parent
-        color: "transparent"
-    }
-
-    MouseArea {
-        id: mouseHelper
-
-        anchors.fill: parent
-        propagateComposedEvents: true
-
-        hoverEnabled: true
-
-        drag.target: null
-        drag.axis: Drag.XAndYAxis
-
-        acceptedButtons: Qt.LeftButton | Qt.RightButton
-
-        property var focusedContent
-
-        property var originContainer
-
-        function getHit(x, y) {
-            return hitTest(stage, x, y);
+        viewport.onWidthChanged: {
+            console.log("Viewport width: " + viewport.width);
         }
 
-        onPressed: {
-            if (mainView.state === "rename") {
-                mainView.state = "";
-                mainView.selectedItem.labelEdit.deselect();
-                mainView.selectedItem.state = "";
-                mainView.unselectStateItem();
+        Rectangle {
+            id: contentFrame
 
-                updateCursor(mouse);
-                cursor.visible = false;
+            width: stage.width
+            height: stage.height
 
-                return;
-            }
+            Rectangle {
+                id: stage
+                color: "#FBFFFA"
+                width: scrollFrame.width
+                height: scrollFrame.height
 
-            if (mouse.button === Qt.RightButton) {
-                var hit = getHit(mouse.x, mouse.y);
-
-                if (hit.objectName === "headerRect") {
-                   var stateItem = hit.parent;
-                   mainView.unselectAll;
-                   mainView.selectedItem = stateItem;
-                   updateCursor(mouse);
-                   cursor.visible = false;
-
-                   contextMenu.popup();
-
-                } else if (hit.objectName === "content") {
-                    updateCursor(mouse);
-                    mainView.unselectAll();
-                    contextMenu.popup();
-                }
-            }
-        }
-
-        function transitionHitTest(mouseX, mouseY) {
-            for (var i = 0; i < transitionLayer.children.length; i++) {
-                var transitionItem = transitionLayer.children[i];
-                var pos = mapToItem(transitionItem, mouseX, mouseY);
-                console.log(pos);
-                var result = transitionItem.hitTest(pos.x, pos.y);
-                console.log("transtion hit : " + result);
-                if (result) {
-                    return transitionItem;
-                }
-            }
-        }
-
-        onDoubleClicked: {
-
-
-            if (mouse.button === Qt.LeftButton) {
-                var hit = getHit(mouse.x, mouse.y);
-
-                if (hit.objectName === "content") {
-                } else if (hit.objectName === "headerRect") {
-                    console.log("double clicked");
-
-                    var stateItem = hit.parent;
-                    mainView.selectedItem = stateItem;
-                    mainView.state = "rename";
-                    mainView.selectedItem.state = "rename";
-                    stateItem.labelEdit.moveCursorSelection(0, TextInput.SelectCharacters);
-                    stateItem.labelEdit.selectAll();
-                    stateItem.labelEdit.focus = true;
-
-                    updateCursor(mouse);
-                    cursor.visible = false;
-
-                    mouse.accepted = false;
-                }
-            } else if (mouse.button === Qt.RightButton) {
-            }
-        }
-
-        onClicked: {
-            if (mouse.button === Qt.LeftButton && mouse.modifiers & Qt.ShiftModifier) {
-                var hit = getHit(mouse.x, mouse.y);
-
-                if (hit.objectName === "content") {
-                    updateCursor(mouse);
-                    //mainView.selectedItem = null;
-                } else if (hit.objectName === "headerRect") {
-                    var stateItem = hit.parent;
-                    if (mainView.selectedItem === null) {
-                        mainView.unselectAll();
-                        mainView.selectedItem = stateItem;
+                onChildrenChanged: {
+                    if (children[0]) {
+                        width = Qt.binding(function(){return children[0].width});
+                        height = Qt.binding(function(){return children[0].height});
                     } else {
-                        mainView.addSelectionItem(stateItem);
-
-                        console.log(mainView.selectedItems);
-                        console.log(mainView.selectedItems.indexOf(stateItem));
+                        width = Qt.binding(function(){return scrollFrame.width});
+                        height = Qt.binding(function(){return scrollFrame.height});
                     }
-
-                    updateCursor(mouse);
-                    cursor.visible = false;
                 }
-            } else if (mouse.button === Qt.LeftButton) {
-                var hit = getHit(mouse.x, mouse.y);
-
-                if (hit.objectName === "content") {
-                    var hitTransition = transitionHitTest(mouse.x, mouse.y);
-                    if (hitTransition) {
-                        console.log("transition hitted");
-                        mainView.unselectAll();
-                        mainView.selectedItem = hitTransition;
-                    } else  {
-                        updateCursor(mouse);
-                        mainView.unselectAll();
-                    }
-                } else if (hit.objectName === "headerRect") {
-                    var stateItem = hit.parent;
-                    mainView.unselectAll();
-                    mainView.selectedItem = stateItem;
-                    updateCursor(mouse);
-                    cursor.visible = false;
-                }
-            } else if (mouse.button === Qt.RightButton) {
-            }
-        }
-
-        onPressAndHold: {
-            if (mouse.button === Qt.RightButton) {
-                return;
-            }
-
-            var hit = getHit(mouse.x, mouse.y);
-
-            // ready to drag when hit hreaderRect
-            if (hit.objectName === "headerRect") {
-                var stateItem = hit.parent;
-                console.log( stateItem.label + " has long tapped.");
-
-                stateItem.state = "dragging";
-
-                originContainer = stateItem.parent;
-                focusedContent = stateItem.parent;
-
-                // parenting to helper
-                var pos = hit.mapToItem(mainView.helper, 0, 0);
-                stateItem.parent = mainView.helper;
-                stateItem.x = pos.x;
-                stateItem.y = pos.y;
-
-                drag.target = stateItem;
-                console.log("drag: " + drag.active + "/ target: " + stateItem.label);
-
-                cursor.state = "dragging";
-                mainView.state = "dragging";
-
-                updateCursor(mouse);
-            }
-        }
-
-        onReleased: {
-            console.log("released");
-
-            // drop to content if possible
-            if (drag.active) {
-                dropToContent(focusedContent);
-                updateLayout();
-                cursor.state = "";
-                mainView.state = "";
-            }
-
-            updateCursor(mouse);
-        }
-
-        onPositionChanged: {
-            if (drag.active) {
-                updateCursor(mouse);
-                focusedContent = cursor.currentContent;
-            }
-        }
-
-        function updateCursor(mouse) {
-            var hit = getHit(mouse.x, mouse.y);
-
-            if (hit) {
-                var stateItem = hit.parent;
-
-                // update when hit content
-                if (hit.objectName === "content") {
-                    var content = hit;
-
-                    cursor.visible = true;
-                    cursor.currentContent = content;
-
-                    // calculate cursor position
-                    var pos = mapToItem(content, mouse.x, mouse.y);
-                    var idx = content.calcIndex(pos.x);
-                    cursor.currentIndex = idx;
-                    cursor.updatePosition();
-                }
-            }
-        }
-
-        function dropToContent(content) {
-            var stateItem = drag.target;
-
-            cursor.currentContent.insertChildAt(stateItem, cursor.currentIndex);
-
-            originContainer.updateLayout();
-
-            content.state = "";
-            stateItem.state = "";
-
-            drag.target = null;
-            focusedContent = null;
-        }
-
-        // return hitted content or headerRect
-        function hitTest(target, x, y) {
-            var item = target.childAt(x, y);
-            if (item) {
-                var pos = item.mapFromItem(target, x, y);
-                var childItem = item.childAt(pos.x, pos.y);
-
-                if (childItem.objectName === "content") {
-                    var contentPos = childItem.mapFromItem(target, x, y);
-
-                    var hitItem = hitTest(childItem, contentPos.x, contentPos.y);
-
-                    if (hitItem) {
-                        return hitItem;
-                    } else {
-                        //console.log('hit content of ' + item.label);
-                        return childItem;
-                    }
-
-                } else {
-                    //console.log('hit header of ' + item.label);
-                    return childItem;
-                }
-            } else {
-                return null;
-            }
-        }
-
-        Item {
-            id: cursor
-
-            visible: true
-
-//            Behavior on x {
-//                NumberAnimation { duration: 100 }
-//            }
-
-//            Behavior on y {
-//                NumberAnimation { duration: 100 }
-//            }
-
-            property var currentContent
-            property int currentIndex
-
-            Component.onCompleted: {
-                currentContent = mainView.stateMachineItem.content;
-                currentIndex = 0;
-                updatePosition();
-            }
-
-            function updatePosition() {
-                var content = currentContent;
-                var idx = currentIndex;
-                var localX, localY;
-                if (idx === 0) {
-                    localX = 5;
-                    localY = 5;
-                } else {
-                    localX = content.children[idx - 1].x + content.children[idx - 1].width;
-                    localY = content.children[idx - 1].y + content.children[idx - 1].height;
-                }
-
-                var helperPos = mouseHelper.mapFromItem(content, localX, localY);
-
-                cursor.x = helperPos.x;
-                cursor.y = helperPos.y;
             }
 
             Rectangle {
-                id: cursorShape
+                id: transitionLayer
 
-                x: -2
-                y: -2
-
-                color: "red"
-
-                width: 5
-                height: 5
+                opacity: mainView.state === "dragging" ? 0.2 : 1.0
+                color: "transparent"
+                anchors.fill: parent
             }
 
-            SequentialAnimation {
-                id: blinkAnim
-                loops: Animation.Infinite
-                running: cursor.state === ""
-                NumberAnimation {
-                    target: cursor
-                    property: "opacity"
-                    from: 0.0
-                    to: 1.0
-                    duration: 150
+            Item {
+                id: cursor
+
+                visible: true
+
+    //            Behavior on x {
+    //                NumberAnimation { duration: 100 }
+    //            }
+
+    //            Behavior on y {
+    //                NumberAnimation { duration: 100 }
+    //            }
+
+                property var currentContent
+                property int currentIndex: 0
+
+                function update() {
+                    currentContent = currentContent || mainView.stateMachineItem.content;
+                    //currentIndex = 0;
+                    updatePosition();
                 }
 
-                PauseAnimation {
-                    duration: 500
+                function updatePosition() {
+                    var content = currentContent;
+                    var idx = currentIndex;
+                    var localX, localY;
+
+                    console.log("idx: ", idx, content.children.length);
+
+                    if (content.children.length === 0) {
+                        localX = 5;
+                        localY = 5;
+                    } else if (idx === content.children.length) {
+                        localX = content.children[idx - 1].x + content.children[idx - 1].width;
+                        localY = content.children[idx - 1].y + content.children[idx - 1].height;
+                    } else {
+                        localX = content.children[idx].x - 5;
+                        localY = content.children[idx].y - 5;
+                    }
+
+//                    if (idx === 0) {
+//                        localX = 5;
+//                        localY = 5;
+//                    } else {
+//                        localX = content.children[idx - 1].x + content.children[idx - 1].width;
+//                        localY = content.children[idx - 1].y + content.children[idx - 1].height;
+//                    }
+
+                    var helperPos = parent.mapFromItem(content, localX, localY);
+
+                    cursor.x = helperPos.x;
+                    cursor.y = helperPos.y;
                 }
 
-                NumberAnimation {
-                    target: cursor
-                    property: "opacity"
-                    from: 1.0
-                    to: 0.0
-                    duration: 150
+                Rectangle {
+                    id: cursorShape
+
+                    x: -2
+                    y: -2
+
+                    color: "red"
+
+                    width: 5
+                    height: 5
                 }
 
-                PauseAnimation {
-                    duration: 200
-                }
+                SequentialAnimation {
+                    id: blinkAnim
+                    loops: Animation.Infinite
+                    running: cursor.state === ""
+                    NumberAnimation {
+                        target: cursor
+                        property: "opacity"
+                        from: 0.0
+                        to: 1.0
+                        duration: 150
+                    }
 
-                onStopped: {
-                    cursor.opacity = 1.0;
+                    PauseAnimation {
+                        duration: 500
+                    }
+
+                    NumberAnimation {
+                        target: cursor
+                        property: "opacity"
+                        from: 1.0
+                        to: 0.0
+                        duration: 150
+                    }
+
+                    PauseAnimation {
+                        duration: 200
+                    }
+
+                    onStopped: {
+                        cursor.opacity = 1.0;
+                    }
                 }
             }
+
+            Rectangle {
+                id: helper
+
+                anchors.fill: parent
+                color: "transparent"
+            }
+
+            Rectangle {
+                id: balloon
+
+                color: "yellow"
+                width: 150
+                height: 60
+
+                opacity: 0.5
+
+                Text {
+                    id: balloonText
+                    anchors.fill: parent
+                    anchors.margins: 5
+                }
+
+                visible: false
+            }
+
+            MouseArea {
+                id: mouseHelper
+
+                anchors.fill: parent
+                propagateComposedEvents: true
+
+                hoverEnabled: true
+
+                drag.target: null
+                drag.axis: Drag.XAndYAxis
+
+                acceptedButtons: Qt.LeftButton | Qt.RightButton
+
+                property var focusedContent
+
+                property var originContainer
+
+                function getHit(x, y) {
+                    return hitTest(stage, x, y);
+                }
+
+                onPressed: {
+                    if (mainView.state === "rename") {
+                        mainView.state = "";
+                        mainView.selectedItem.labelEdit.deselect();
+                        mainView.selectedItem.state = "";
+                        mainView.unselectStateItem();
+
+                        updateCursor(mouse);
+                        cursor.visible = false;
+
+                        return;
+                    }
+
+                    if (mouse.button === Qt.RightButton) {
+                        var hit = getHit(mouse.x, mouse.y);
+
+                        if (hit.objectName === "headerRect") {
+                           var stateItem = hit.parent;
+                           mainView.unselectAll;
+                           mainView.selectedItem = stateItem;
+                           updateCursor(mouse);
+                           cursor.visible = false;
+
+                           contextMenu.popup();
+
+                        } else if (hit.objectName === "content") {
+                            var hitTransition = transitionHitTest(mouse.x, mouse.y);
+                            if (hitTransition) {
+                                cursor.visible = false;
+                                mainView.selectedItem = hitTransition;
+                                transitionContextMenu.popup();
+                            } else {
+                                updateCursor(mouse);
+                                mainView.unselectAll();
+                                contextMenu.popup();
+                            }
+                        }
+                    }
+                }
+
+                function transitionHitTest(mouseX, mouseY) {
+                    for (var i = 0; i < transitionLayer.children.length; i++) {
+                        var transitionItem = transitionLayer.children[i];
+                        var pos = mapToItem(transitionItem, mouseX, mouseY);
+                        //console.log(pos);
+                        var result = transitionItem.hitTest(pos.x, pos.y);
+                        //console.log("transtion hit : " + result);
+                        if (result) {
+                            return transitionItem;
+                        }
+                    }
+                }
+
+                onDoubleClicked: {
+
+
+                    if (mouse.button === Qt.LeftButton) {
+                        var hit = getHit(mouse.x, mouse.y);
+
+                        if (hit.objectName === "content") {
+                        } else if (hit.objectName === "headerRect") {
+                            console.log("double clicked");
+
+                            var stateItem = hit.parent;
+                            mainView.selectedItem = stateItem;
+                            mainView.state = "rename";
+                            mainView.selectedItem.state = "rename";
+                            stateItem.labelEdit.moveCursorSelection(0, TextInput.SelectCharacters);
+                            stateItem.labelEdit.selectAll();
+                            stateItem.labelEdit.focus = true;
+
+                            updateCursor(mouse);
+                            cursor.visible = false;
+
+                            mouse.accepted = false;
+                        }
+                    } else if (mouse.button === Qt.RightButton) {
+                    }
+                }
+
+                onClicked: {
+                    if (mouse.button === Qt.LeftButton && mouse.modifiers & Qt.ShiftModifier) {
+                        var hit = getHit(mouse.x, mouse.y);
+
+                        if (hit.objectName === "content") {
+                            updateCursor(mouse);
+                            //mainView.selectedItem = null;
+                        } else if (hit.objectName === "headerRect") {
+                            var stateItem = hit.parent;
+                            if (mainView.selectedItem === null) {
+                                mainView.unselectAll();
+                                mainView.selectedItem = stateItem;
+                            } else {
+                                mainView.addSelectionItem(stateItem);
+
+                                console.log(mainView.selectedItems);
+                                console.log(mainView.selectedItems.indexOf(stateItem));
+                            }
+
+                            updateCursor(mouse);
+                            cursor.visible = false;
+                        }
+                    } else if (mouse.button === Qt.LeftButton) {
+                        var hit = getHit(mouse.x, mouse.y);
+
+                        if (hit.objectName === "content") {
+                            var hitTransition = transitionHitTest(mouse.x, mouse.y);
+                            if (hitTransition) {
+                                console.log("transition hitted");
+                                mainView.unselectAll();
+                                mainView.selectedItem = hitTransition;
+                            } else  {
+                                updateCursor(mouse);
+                                mainView.unselectAll();
+                            }
+                        } else if (hit.objectName === "headerRect") {
+                            var stateItem = hit.parent;
+                            mainView.unselectAll();
+                            mainView.selectedItem = stateItem;
+                            updateCursor(mouse);
+                            cursor.visible = false;
+                        }
+                    } else if (mouse.button === Qt.RightButton) {
+                    }
+                }
+
+                onPressAndHold: {
+                    if (mouse.button === Qt.RightButton) {
+                        return;
+                    }
+
+                    var hit = getHit(mouse.x, mouse.y);
+
+                    // ready to drag when hit hreaderRect
+                    if (hit.objectName === "headerRect") {
+                        var stateItem = hit.parent;
+                        console.log( stateItem.label + " has long tapped.");
+
+                        stateItem.state = "dragging";
+
+                        originContainer = stateItem.parent;
+                        focusedContent = stateItem.parent;
+
+                        // parenting to helper
+                        var pos = hit.mapToItem(mainView.helper, 0, 0);
+                        stateItem.parent = mainView.helper;
+                        stateItem.x = pos.x;
+                        stateItem.y = pos.y;
+
+                        drag.target = stateItem;
+                        console.log("drag: " + drag.active + "/ target: " + stateItem.label);
+
+                        cursor.state = "dragging";
+                        mainView.state = "dragging";
+
+                        updateCursor(mouse);
+                    }
+                }
+
+                onReleased: {
+                    console.log("released");
+
+                    // drop to content if possible
+                    if (drag.active) {
+                        dropToContent(focusedContent);
+                        updateLayout();
+                        cursor.state = "";
+                        mainView.state = "";
+                    }
+
+                    updateCursor(mouse);
+                }
+
+                onPositionChanged: {
+                    balloon.visible = false;
+
+                    if (drag.active) {
+                        updateCursor(mouse);
+                        focusedContent = cursor.currentContent;
+                    } else {
+                        var hit = getHit(mouse.x, mouse.y);
+                        if (hit.objectName === "content") {
+                            var hitTransition = transitionHitTest(mouse.x, mouse.y);
+                            if (hitTransition) {
+                                console.log("transition hitted");
+                                balloon.visible = true;
+                                balloon.x = mouse.x + 20;
+                                balloon.y = mouse.y + 20;
+                                if (hitTransition.signalModel) {
+                                    balloonText.text = hitTransition.signalModel.name;
+                                } else {
+                                    balloonText.text = "";
+                                }
+                            }
+                        }
+                    }
+                }
+
+                function updateCursor(mouse) {
+                    var hit = getHit(mouse.x, mouse.y);
+
+                    if (hit) {
+                        var stateItem = hit.parent;
+
+                        // update when hit content
+                        if (hit.objectName === "content") {
+                            var content = hit;
+
+                            cursor.visible = true;
+                            cursor.currentContent = content;
+
+                            // calculate cursor position
+                            var pos = mapToItem(content, mouse.x, mouse.y);
+                            var idx = content.calcIndex(pos.x);
+                            cursor.currentIndex = idx;
+                            cursor.updatePosition();
+                        }
+                    }
+                }
+
+                function dropToContent(content) {
+                    var stateItem = drag.target;
+
+                    cursor.currentContent.insertChildAt(stateItem, cursor.currentIndex);
+
+                    originContainer.updateLayout();
+
+                    content.state = "";
+                    stateItem.state = "";
+
+                    drag.target = null;
+                    focusedContent = null;
+                }
+
+                // return hitted content or headerRect
+                function hitTest(target, x, y) {
+                    var item = target.childAt(x, y);
+                    if (item) {
+                        var pos = item.mapFromItem(target, x, y);
+                        var childItem = item.childAt(pos.x, pos.y);
+
+                        if (childItem.objectName === "content") {
+                            var contentPos = childItem.mapFromItem(target, x, y);
+
+                            var hitItem = hitTest(childItem, contentPos.x, contentPos.y);
+
+                            if (hitItem) {
+                                return hitItem;
+                            } else {
+                                //console.log('hit content of ' + item.label);
+                                return childItem;
+                            }
+
+                        } else {
+                            //console.log('hit header of ' + item.label);
+                            return childItem;
+                        }
+                    } else {
+                        return null;
+                    }
+                }
+            }
+
+
         }
+
     }
 
     Rectangle {
