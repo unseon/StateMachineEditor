@@ -15,6 +15,7 @@
         <file>FFaniStateMachine/SignalTransition.qml</file>
         <file>FFaniStateMachine/qmldir</file>
         <file>FFaniStateMachine/FinalState.qml</file>
+        <file>ProjectView.qml</file>
     </qresource>
     <qresource prefix="/images">
         <file>images/icons/minus.png</file>

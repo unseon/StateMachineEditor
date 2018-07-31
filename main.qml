@@ -302,13 +302,26 @@ ApplicationWindow {
         anchors.fill: parent
         orientation: Qt.Horizontal
 
-        SignalListView {
-            id: signalView
 
-            width: 100
-            model: mainView.signals
+        SplitView {
+            width: 500
 
+            orientation: Qt.Vertical
+
+            ProjectView {
+                id: projectView
+                height: parent.height / 2
+            }
+
+            SignalListView {
+                id: signalView
+                height: parent.height / 2
+
+                model: mainView.signals
+            }
         }
+
+
 
         StateMachineMainView {
             id: mainView

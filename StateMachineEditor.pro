@@ -6,7 +6,8 @@ SOURCES += main.cpp \
     metadatautil.cpp \
     fileio.cpp \
     transitionline.cpp \
-    connectionline.cpp
+    connectionline.cpp \
+    qmlthumbnailprovider.cpp
 
 RESOURCES += qml.qrc
 
@@ -20,5 +21,6 @@ HEADERS += \
     metadatautil.h \
     fileio.h \
     transitionline.h \
-    connectionline.h
+    connectionline.h \
+    qmlthumbnailprovider.h
 
