@@ -23,7 +23,7 @@ int main(int argc, char *argv[])
     engine.rootContext()->setContextProperty("fileIo", &fileIo);
     engine.rootContext()->setContextProperty("metaDataUtil", &metaDataUtil);
 
-    engine.addImageProvider(QLatin1String("colors"), new QmlThumbnailProvider);
+    //engine.addImageProvider(QLatin1String("colors"), new QmlThumbnailProvider);
 
     engine.load(QUrl(QStringLiteral("qrc:/main.qml")));
 
