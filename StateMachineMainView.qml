@@ -1,5 +1,5 @@
 import QtQuick 2.0
-import QtQuick.Controls 1.4
+import QtQuick.Controls 2
 
 import "QmlExporter.js" as QmlExporter
 import "JsonExporter.js" as JsonExporter
@@ -319,13 +319,6 @@ Rectangle {
         //color: "#FBFFFA"
         anchors.fill: parent
 
-        flickableItem.rebound: null
-
-
-        viewport.onWidthChanged: {
-            console.log("Viewport width: " + viewport.width);
-        }
-
         Rectangle {
             id: contentFrame
 
@@ -503,7 +496,7 @@ Rectangle {
                     return hitTest(stage, x, y);
                 }
 
-                onPressed: {
+                onPressed: (mouse) => {
                     if (mainView.state === "rename") {
                         mainView.state = "";
                         mainView.selectedItem.labelEdit.deselect();
@@ -676,7 +669,7 @@ Rectangle {
                     updateCursor(mouse);
                 }
 
-                onPositionChanged: {
+                onPositionChanged: (mouse) => {
                     balloon.visible = false;
 
                     if (drag.active) {
@@ -684,7 +677,7 @@ Rectangle {
                         focusedContent = cursor.currentContent;
                     } else {
                         var hit = getHit(mouse.x, mouse.y);
-                        if (hit.objectName === "content") {
+                        if (hit && hit.objectName === "content") {
                             var hitTransition = transitionHitTest(mouse.x, mouse.y);
                             if (hitTransition) {
                                 console.log("transition hitted");

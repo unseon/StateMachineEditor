@@ -1,9 +1,8 @@
 import QtQuick 2.5
-import QtQuick.Controls 1.4
-import QtQuick.Controls.Styles 1.4
+import QtQuick.Controls 2
 import QtQuick.Layouts 1.1
 import QtQuick.Window 2.0
-import QtQuick.Dialogs 1.0
+import QtQuick.Dialogs
 //import QtQml.StateMachine 1.0 as DSM
 import FFaniStateMachine 1.0 as FSM
 
@@ -24,7 +23,7 @@ ApplicationWindow {
 
             MenuItem {
                 text: qsTr("&New File")
-                shortcut: "Ctrl+N"
+//                shortcut: "Ctrl+N"
                 onTriggered: {
                     newFile();
                 }
@@ -32,7 +31,7 @@ ApplicationWindow {
 
             MenuItem {
                 text: qsTr("&Open...")
-                shortcut: "Ctrl+O"
+//                shortcut: "Ctrl+O"
                 onTriggered: {
                     console.log("Open action triggered");
                     fileDialog.visible = true;
@@ -41,7 +40,7 @@ ApplicationWindow {
 
             MenuItem {
                 text: qsTr("&Save...")
-                shortcut: "Ctrl+S"
+//                shortcut: "Ctrl+S"
                 onTriggered: {
 
                     if (applicationWindow.fileUrl) {
@@ -54,7 +53,7 @@ ApplicationWindow {
 
             MenuItem {
                 text: qsTr("Save As...")
-                shortcut: "Shift+Ctrl+S"
+//                shortcut: "Shift+Ctrl+S"
                 onTriggered: {
                     saveFileDialog.visible = true;
                 }
@@ -91,7 +90,7 @@ ApplicationWindow {
     FileDialog {
         id: fileDialog
         title: "Please choose a file"
-        folder: shortcuts.home
+        //currentFolder: shortcuts.home
 
         onAccepted: {
             console.log("You chose: " + fileDialog.fileUrl);
@@ -106,10 +105,10 @@ ApplicationWindow {
     FileDialog {
         id: saveFileDialog
         title: "Save File As"
-        folder: shortcuts.home
+        //currentFolder: shortcuts.home
 
 
-        selectExisting: false
+        //selectExisting: false
         onAccepted: {
             console.log("You chose: " + fileUrl)
             mainView.save(fileUrl);
@@ -118,7 +117,7 @@ ApplicationWindow {
         }
     }
 
-    toolBar: ToolBar {
+    header: ToolBar {
         visible: mainView.targetStateMachine
         RowLayout {
             anchors.fill: parent
@@ -218,21 +217,21 @@ ApplicationWindow {
     Action {
         id: removeStateAction
         text: qsTr("Remove State");
-        iconSource: "qrc:/images/images/icons/icon_delete_state.svg"
+        icon.source: "qrc:/images/images/icons/icon_delete_state.svg"
         onTriggered: mainView.removeState();
     }
 
     Action {
         id: createTransitionAction
         text: qsTr("Create Transition");
-        iconSource: "qrc:/images/images/icons/plus.png"
+        icon.source: "qrc:/images/images/icons/plus.png"
         onTriggered: mainView.createTransition();
     }
 
     Action {
         id: removeTransitionAction
         text: qsTr("Create Transition");
-        iconSource: "qrc:/images/images/icons/minus.png"
+        icon.source: "qrc:/images/images/icons/minus.png"
         onTriggered: mainView.removeSelectedTransition();
     }
 
