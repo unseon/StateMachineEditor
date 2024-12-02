@@ -330,6 +330,9 @@ Rectangle {
             var posX;
             var posY = topMargin;
 
+            let childWidth = 100
+
+
             if (children.length === 0) {
 
                 if (stateItem.type !== "FinalState") {
@@ -343,22 +346,24 @@ Rectangle {
                 leftMargin += childMargin;
                 //rightMargin += childMargin;
 
+                //posX = leftMargin;
                 posX = leftMargin;
 
                 for (var i = 0; i < children.length; i++) {
                     var child = children[i];
                     child.updateLayout();
 
-                    child.x = posX;
-                    posX += child.width + hSpace;
+                    child.x = 5
+                    childWidth = Math.max(childWidth, child.width)
 
                     child.y = posY;
                     posY += child.height + vSpace;
+
                 }
             }
 
             if (!zoomed) {
-                width = posX - hSpace + rightMargin;
+                width = childWidth + rightMargin;
                 height = posY;
             }
 
@@ -367,14 +372,29 @@ Rectangle {
             //contentUpdated();
         }
 
-        function calcIndex(posX) {
+        // function calcIndex(posX) {
+        //    if (children.length === 0) {
+        //        return 0;
+        //    }
+
+        //    for (var i = 0; i < children.length; i++) {
+        //        var child = children[i];
+        //        if (posX < child.x + child.width) {
+        //            return i;
+        //        }
+        //    }
+
+        //    return children.length;
+        // }
+
+        function calcIndex(posY) {
            if (children.length === 0) {
                return 0;
            }
 
            for (var i = 0; i < children.length; i++) {
                var child = children[i];
-               if (posX < child.x + child.width) {
+               if (posY < child.y + child.height) {
                    return i;
                }
            }

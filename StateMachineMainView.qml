@@ -383,20 +383,12 @@ Rectangle {
                         localX = 5;
                         localY = 5;
                     } else if (idx === content.children.length) {
-                        localX = content.children[idx - 1].x + content.children[idx - 1].width;
+                        localX = 5;
                         localY = content.children[idx - 1].y + content.children[idx - 1].height;
                     } else {
-                        localX = content.children[idx].x - 5;
+                        localX = content.children[idx].x;
                         localY = content.children[idx].y - 5;
                     }
-
-//                    if (idx === 0) {
-//                        localX = 5;
-//                        localY = 5;
-//                    } else {
-//                        localX = content.children[idx - 1].x + content.children[idx - 1].width;
-//                        localY = content.children[idx - 1].y + content.children[idx - 1].height;
-//                    }
 
                     var helperPos = parent.mapFromItem(content, localX, localY);
 
@@ -407,12 +399,9 @@ Rectangle {
                 Rectangle {
                     id: cursorShape
 
-                    x: -2
-                    y: -2
-
                     color: "red"
 
-                    width: 5
+                    width: 20
                     height: 5
                 }
 
@@ -709,7 +698,7 @@ Rectangle {
 
                             // calculate cursor position
                             var pos = mapToItem(content, mouse.x, mouse.y);
-                            var idx = content.calcIndex(pos.x);
+                            var idx = content.calcIndex(pos.y);
                             cursor.currentIndex = idx;
                             cursor.updatePosition();
                         }

@@ -2,3 +2,7 @@
 *.autosave
 
 *.user
+
+build
+
+*.pro.user.*
