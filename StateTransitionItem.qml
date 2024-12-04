@@ -5,6 +5,6 @@ GroupAnimation {
 
     property var signals: ListModel{}
 
-    property var parentStateItem: null
+    property var parentAnimation: null
 }
 

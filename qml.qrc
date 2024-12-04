@@ -1,20 +1,10 @@
 <RCC>
     <qresource prefix="/">
         <file>main.qml</file>
-        <file>StateMachineMainView.qml</file>
+        <file>StateTransitionMainView.qml</file>
         <file>GroupAnimation.qml</file>
-        <file>StateSampleButton.qml</file>
-        <file>TransitionItem.qml</file>
-        <file>TransitionItem.qml</file>
         <file>HierarchyView.qml</file>
-        <file>QmlExporter.js</file>
-        <file>SignalListView.qml</file>
         <file>JsonExporter.js</file>
-        <file>FFaniStateMachine/State.qml</file>
-        <file>FFaniStateMachine/StateMachine.qml</file>
-        <file>FFaniStateMachine/SignalTransition.qml</file>
-        <file>FFaniStateMachine/qmldir</file>
-        <file>FFaniStateMachine/FinalState.qml</file>
         <file>SingleAnimation.qml</file>
         <file>AnimationTrack.qml</file>
         <file>StateTransitionItem.qml</file>

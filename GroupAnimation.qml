@@ -53,7 +53,7 @@ Rectangle {
     property var target
 
     property string label: "untitled"
-    property string type: "State"
+    property string type: "group"
 
     property alias labelEdit: labelEdit
 
@@ -66,7 +66,7 @@ Rectangle {
 
     property bool isInitialState: parent && parent.children[0] === this
 
-    property var parentStateItem: (parent && parent.parent ) ? parent.parent : null
+    property var parentAnimation: (parent && parent.parent ) ? parent.parent : null
 
     Component.onCompleted: {
         state = "";
@@ -131,13 +131,8 @@ Rectangle {
             for (var i = 0; i < target.children.length; i++) {
                 var child = target.children[i];
 
-                var childType = typeName(child);
-
-                if (childType === "State") {
-                    var item = component.createObject(content);
-                    item.target = target.children[i];
-                    //isGroup = true;
-                }
+                var item = component.createObject(content);
+                item.target = target.children[i];
             }
         }
 
@@ -256,7 +251,7 @@ Rectangle {
             children = c;
         }
 
-        function removeChild(childStateItem) {
+        function removeChild(child) {
 
 
             var c = [];
@@ -264,7 +259,7 @@ Rectangle {
                 c.push(children[i]);
             }
 
-            var idx = c.indexOf(childStateItem);
+            var idx = c.indexOf(child);
             c.splice(idx, 1);
 
             children = c;

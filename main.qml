@@ -3,8 +3,6 @@ import QtQuick.Controls 2
 import QtQuick.Layouts 1.1
 import QtQuick.Window 2.0
 import QtQuick.Dialogs
-//import QtQml.StateMachine 1.0 as DSM
-import FFaniStateMachine 1.0 as FSM
 
 ApplicationWindow {
     id: applicationWindow
@@ -69,22 +67,17 @@ ApplicationWindow {
         }
     }
 
-    property Component stateMachineComponent: Component {
-        FSM.StateMachine{
-            id: stateMachine
-
-            initialState: state1
-            objectName: "stateMachine"
-
-            FSM.State {
-                id: state1
-                objectName: "anim1"
-            }
-        }
-    }
-
     function newFile() {
-        stateMachineContainer.stateMachine = stateMachineComponent.createObject(stateMachineContainer);
+        //stateTransitionContainer.stateTransition = stateTransitionComponent.createObject(stateTransitionContainer);
+        stateTransitionContainer.stateTransition = {
+            objectName: "transition0",
+            children: [
+                {
+                    type: "single",
+                    objectName: "anim1"
+                }
+            ]
+        }
     }
 
     FileDialog {
@@ -98,7 +91,7 @@ ApplicationWindow {
             console.log(text.length);
 
             applicationWindow.fileUrl = fileDialog.fileUrl;
-            stateMachineContainer.stateMachine = Qt.createQmlObject(text, stateMachineContainer);
+            stateTransitionContainer.stateTransition = Qt.createQmlObject(text, stateTransitionContainer);
         }
     }
 
@@ -118,12 +111,12 @@ ApplicationWindow {
     }
 
     header: ToolBar {
-        visible: mainView.targetStateMachine
+        visible: mainView.targetTransition
         RowLayout {
             anchors.fill: parent
 
             ToolButton {
-                //action: createStateAction
+                //action: createGroupAction
 
                 Layout.fillWidth: false
                 Layout.preferredWidth: 50
@@ -139,12 +132,12 @@ ApplicationWindow {
                 }
 
                 onClicked: {
-                    createStateAction.trigger();
+                    createGroupAction.trigger();
                 }
             }
 
             ToolButton {
-                //action: createStateAction
+                //action: createGroupAction
 
                 Layout.fillWidth: false
                 Layout.preferredWidth: 50
@@ -165,7 +158,7 @@ ApplicationWindow {
             }
 
             ToolButton {
-                //action: removeStateAction
+                //action: removeAnimationAction
                 Layout.fillWidth: false
                 Layout.preferredWidth: 50
                 Layout.preferredHeight: 50
@@ -180,47 +173,7 @@ ApplicationWindow {
                 }
 
                 onClicked: {
-                    removeStateAction.trigger();
-                }
-            }
-
-            ToolButton {
-                //action: createTransitionAction
-
-                Layout.fillWidth: false
-                Layout.preferredWidth: 50
-
-                Image {
-                    anchors.fill: parent
-                    source: "qrc:/images/images/icons/icon_create_transition.svg"
-                    fillMode: Image.PreserveAspectFit
-
-                    sourceSize.width: width
-                    sourceSize.height: height
-                }
-
-                onClicked: {
-                    createTransitionAction.trigger();
-                }
-            }
-
-            ToolButton {
-                //action: removeTransitionAction
-
-                Layout.fillWidth: false
-                Layout.preferredWidth: 50
-
-                Image {
-                    anchors.fill: parent
-                    source: "qrc:/images/images/icons/icon_delete_transition.svg"
-                    fillMode: Image.PreserveAspectFit
-
-                    sourceSize.width: width
-                    sourceSize.height: height
-                }
-
-                onClicked: {
-                    removeTransitionAction.trigger();
+                    removeAnimationAction.trigger();
                 }
             }
 
@@ -229,9 +182,9 @@ ApplicationWindow {
     }
 
     Action {
-        id: createStateAction
+        id: createGroupAction
         text: qsTr("Insert Group Animation");
-        onTriggered: mainView.createState();
+        onTriggered: mainView.createGroupAnimation();
     }
 
     Action {
@@ -241,33 +194,18 @@ ApplicationWindow {
     }
 
     Action {
-        id: removeStateAction
-        text: qsTr("Remove State");
+        id: removeAnimationAction
+        text: qsTr("Remove Animation");
         icon.source: "qrc:/images/images/icons/icon_delete_state.svg"
-        onTriggered: mainView.removeState();
+        onTriggered: mainView.remove();
     }
-
-    Action {
-        id: createTransitionAction
-        text: qsTr("Create Transition");
-        icon.source: "qrc:/images/images/icons/plus.png"
-        onTriggered: mainView.createTransition();
-    }
-
-    Action {
-        id: removeTransitionAction
-        text: qsTr("Create Transition");
-        icon.source: "qrc:/images/images/icons/minus.png"
-        onTriggered: mainView.removeSelectedTransition();
-    }
-
 
     Menu {
         id: contextMenu
         title: "Edit"
 
         MenuItem {
-            action: createStateAction
+            action: createGroupAction
             visible: mainView.selectedItem === null
         }
 
@@ -277,7 +215,7 @@ ApplicationWindow {
         }
 
         MenuItem {
-            action: removeStateAction
+            action: removeAnimationAction
             visible: mainView.selectedItem !== null
         }
 
@@ -286,40 +224,14 @@ ApplicationWindow {
         }
     }
 
-    Menu {
-        id: transitionContextMenu
-        title: "Transition Menu"
-
-        MenuSeparator {
-
-        }
-
-        Menu {
-            id: signalAssign
-            title: "Assign Signal"
-
-            Instantiator {
-                model: mainView.signals
-
-                MenuItem {
-                    text: model.name
-                    onTriggered: mainView.assignSignal(model)
-                }
-
-                onObjectAdded: signalAssign.insertItem(index, object)
-                onObjectRemoved: signalAssign.removeItem(object)
-            }
-        }
-    }
-
     Item {
-        id: stateMachineContainer
+        id: stateTransitionContainer
         visible: false
 
-        property var stateMachine
+        property var stateTransition
 
-        onStateMachineChanged: {
-            mainView.targetStateMachine = stateMachine;
+        onStateTransitionChanged: {
+            mainView.targetTransition = stateTransition;
         }
     }
 
@@ -327,15 +239,7 @@ ApplicationWindow {
         anchors.fill: parent
         orientation: Qt.Horizontal
 
-        SignalListView {
-            id: signalView
-
-            width: 100
-            model: mainView.signals
-
-        }
-
-        StateMachineMainView {
+        StateTransitionMainView {
             id: mainView
             //targetState: sampleButton.stateMachine
             //Layout.fillWidth: true
@@ -349,7 +253,7 @@ ApplicationWindow {
 
     Rectangle {
         anchors.fill: parent
-        visible: !mainView.targetStateMachine
+        visible: !mainView.targetTransition
 
         Button {
             text: "New File"

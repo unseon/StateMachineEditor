@@ -1,15 +1,14 @@
 import QtQuick 2.0
 import QtQuick.Controls 2
 
-import "QmlExporter.js" as QmlExporter
 import "JsonExporter.js" as JsonExporter
 
 Rectangle {
     id: mainView
     color: "#ececec"
 
-    property var targetStateMachine: null
-    property var stateMachineItem: null
+    property var targetTransition: null
+    property var stateTransitionItem: null
 
     property var selectedItem: null
     property var selectedItems: []
@@ -22,7 +21,6 @@ Rectangle {
 
     property var stateTable: [] // [stateModel, stateItem]
 
-    property int signalIndex: 28
     property var signals: ListModel{}
 
 
@@ -47,11 +45,11 @@ Rectangle {
     }
 
     function save(fileUrl) {
-        QmlExporter.save(fileUrl, stateMachineItem);
+
     }
 
     function exportToJson(fileUrl) {
-        JsonExporter.save(fileUrl, stateMachineItem);
+        JsonExporter.save(fileUrl, stateTransitionItem);
     }
 
     function addSelectionItem(stateItem) {
@@ -59,118 +57,28 @@ Rectangle {
         stateItem.selected = true;
     }
 
-    function assignSignal(signalModel) {
-        //selectedItem.signalName = signalName;
-        selectedItem.signalModel = signalModel;
-    }
-
     function unselectAll() {
-        for (var i = 0; i < selectedItems.length; i++) {
-            if (selectedItems[i].isStateItem) {
-                //unselectStateItem(selectedItems[i]);
-            } else if (selectedItems[i].isTransitionItem) {
-                unselectTransitionItem(selectedItems[i]);
-            }
-        }
-
-        unselectStateItem();
+        unselectItem();
     }
 
-    function unselectTransitionItem(transitionItem) {
-        transitionItem.selected = false;
-    }
-
-    function unselectStateItem(stateItem) {
-
+    function unselectItem(item) {
         // when root state
-        if (!stateItem) {
-            stateItem = mainView.stateMachineItem;
+        if (!item) {
+            item = mainView.stateTransitionItem;
             selectedItem = null;
             selectedItems = [];
         }
 
-        stateItem.selected = false;
+        item.selected = false;
 
-        for (var i = 0; i < stateItem.content.children.length; i++) {
-            var childItem = stateItem.content.children[i];
-            unselectStateItem(childItem);
+        for (var i = 0; i < item.content.children.length; i++) {
+            var childItem = item.content.children[i];
+            unselectItem(childItem);
         }
-    }
-
-    function removeTransition(transitionItem) {
-        var newTransitionList = [];
-
-        for (var i = 0; i < transitionLayer.children.length; i++) {
-            var transition = transitionLayer.children[i];
-            if (transition === transitionItem) {
-                continue;
-            }
-
-            newTransitionList.push(transitionLayer.children[i]);
-        }
-
-        transitionItem.destroy();
-    }
-
-    function removeSelectedTransition() {
-        var selectedTransition = selectedItem;
-        unselectAll();
-
-        removeTransition(selectedTransition);
-    }
-
-    function removeTransitionsConnected(stateItem) {
-        var newTransitionList = [];
-
-        for (var i = 0; i < transitionLayer.children.length; i++) {
-            var transition = transitionLayer.children[i];
-            if (transition.to === stateItem || transition.from === stateItem)
-                continue;
-
-            newTransitionList.push(transitionLayer.children[i]);
-        }
-
-        transitionLayer.children = newTransitionList;
-
-        for (var i = 0; i < stateItem.content.children.length; i++) {
-            var child = stateItem.content.children[i];
-            removeTransitionsConnected(child);
-        }
-    }
-
-    function getTransitionList() {
-        var transitionList = [];
-        buildTransitionOnModel(targetStateMachine, transitionList);
-
-        return transitionList;
     }
 
     function typeName(obj) {
         return obj.toString().split("(")[0].split("_")[0];
-    }
-
-    function buildTransitionOnModel(model, list) {
-        for (var i = 0; i < model.children.length; i++) {
-            var child = model.children[i];
-            var childType = typeName(child);
-
-            if (childType === "SignalTransition" || childType === "TimeoutTransition") {
-                var transition = child;
-                list.push(transition);
-            } else if (childType === "State") {
-                buildTransitionOnModel(child, list);
-            }
-        }
-    }
-
-    function getStateItemFromModel(stateModel) {
-        for (var i = 0; i < stateTable.length; i++) {
-            if (stateModel === stateTable[i][0]) {
-                return stateTable[i][1];
-            }
-        }
-
-        return null;
     }
 
     property Component stateTransitionComponent: Component {
@@ -179,7 +87,7 @@ Rectangle {
         }
     }
 
-    property Component stateItemComponent: Component {
+    property Component groupAnimationComponent: Component {
         GroupAnimation{
 
         }
@@ -191,15 +99,10 @@ Rectangle {
         }
     }
 
-    onTargetStateMachineChanged: {
-        if (targetStateMachine) {
-            //var topState = stateComponent.createObject(stage, {"width": mainView.width, "height": mainView.height});
-            stateMachineItem = stateTransitionComponent.createObject(stage);//, {"target": targetState});
-            //stateMachineItem.zoomed = true;
-            stateMachineItem.target = targetStateMachine;
-            //stateMachineItem.width = Qt.binding(function(){return mainView.width});
-            //stateMachineItem.height = Qt.binding(function(){return mainView.height});
-
+    onTargetTransitionChanged: {
+        if (targetTransition) {
+            stateTransitionItem = stateTransitionComponent.createObject(stage);//, {"target": targetState});
+            stateTransitionItem.target = targetTransition;
             visible = true;
 
             updateLayout();
@@ -208,39 +111,12 @@ Rectangle {
         }
     }
 
-    function getSignalModelByName(signalName) {
-        for (var i = 0; i < signals.count; i++) {
-
-            if (signals.get(i).name === signalName) {
-
-                return signals.get(i);
-            }
-        }
-
-        return null;
-    }
-
-    function getSignalEntity(signalObject) {
-        console.log("signalObject:" + signalObject);
-
-
-        for (var i = 0; i < signals.count; i++) {
-
-            if (targetStateMachine[signals.get(i).propertyIndex] === signalObject) {
-
-                return signals.get(i);
-            }
-        }
-
-        return false;
-    }
-
-    function createUniqueStateName() {
+    function createUniqueName() {
         // state + {number}
         var prefix = "anim";
         for (var i = 1; i < 1000; i++) {
             var name = prefix + i;
-            if (findStateByName(name) === null) {
+            if (findStateTransitionByName(name) === null) {
                 break;
             }
         }
@@ -248,19 +124,19 @@ Rectangle {
         return name;
     }
 
-    function findStateByName(name) {
-        var item = stateMachineItem.findByName(name);
+    function findStateTransitionByName(name) {
+        var item = stateTransitionItem.findByName(name);
         console.log("found name: " + name);
         console.log("found name: " + (item?item.label:null));
         return item;
     }
 
-    function createState() {
-        var name = createUniqueStateName();
+    function createGroupAnimation() {
+        var name = createUniqueName();
 
-        var stateItem = stateItemComponent.createObject(stage);
+        var stateItem = groupAnimationComponent.createObject(stage);
         stateItem.label = name;
-        stateItem.type = "State";
+        stateItem.type = "group";
         cursor.currentContent.insertChildAt(stateItem, cursor.currentIndex);
         cursor.currentIndex++;
 
@@ -269,11 +145,11 @@ Rectangle {
     }
 
     function createSingleAnimation() {
-        var name = createUniqueStateName();
+        var name = createUniqueName();
 
         var stateItem = singleAnimationComponent.createObject(stage);
         stateItem.label = name;
-        stateItem.type = "State";
+        stateItem.type = "single";
         cursor.currentContent.insertChildAt(stateItem, cursor.currentIndex);
         cursor.currentIndex++;
 
@@ -281,25 +157,15 @@ Rectangle {
         updateLayout();
     }
 
-    function removeState() {
-        //stateMachineItem.removeState(selectedItems.target);
+    function remove() {
 
-        removeTransitionsConnected(selectedItem);
         selectedItem.parent.removeChild(selectedItem);
 
         updateLayout();
     }
 
-    function createTransition() {
-        var transitionItem = transitionComponent.createObject(transitionLayer);
-        transitionItem.from = mainView.selectedItems[0];
-        transitionItem.to = mainView.selectedItems[1];
-
-        updateLayout();
-    }
-
     function updateLayout() {
-        stateMachineItem.updateLayout();
+        stateTransitionItem.updateLayout();
 
         for (var i = 0; i < transitionLayer.children.length; i++) {
             var transitionItem = transitionLayer.children[i];
@@ -362,7 +228,7 @@ Rectangle {
                 property int currentIndex: 0
 
                 function update() {
-                    currentContent = currentContent || mainView.stateMachineItem.content;
+                    currentContent = currentContent || mainView.stateTransitionItem.content;
                     //currentIndex = 0;
                     updatePosition();
                 }
@@ -560,7 +426,7 @@ Rectangle {
                     }
                 }
 
-                onClicked: {
+                onClicked: (mouse) =>{
                     if (mouse.button === Qt.LeftButton && mouse.modifiers & Qt.ShiftModifier) {
                         var hit = getHit(mouse.x, mouse.y);
 
@@ -606,7 +472,7 @@ Rectangle {
                     }
                 }
 
-                onPressAndHold: {
+                onPressAndHold: (mouse) => {
                     if (mouse.button === Qt.RightButton) {
                         return;
                     }
@@ -639,7 +505,7 @@ Rectangle {
                     }
                 }
 
-                onReleased: {
+                onReleased: (mouse) => {
                     console.log("released");
 
                     // drop to content if possible
