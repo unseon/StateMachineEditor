@@ -173,20 +173,20 @@ Rectangle {
         return null;
     }
 
-    property Component stateMachineItemComponent: Component {
-        StateMachineItem{
+    property Component stateTransitionComponent: Component {
+        StateTransitionItem{
 
         }
     }
 
     property Component stateItemComponent: Component {
-        StateItem{
+        GroupAnimation{
 
         }
     }
 
-    property Component transitionComponent: Component {
-        TransitionItem {
+    property Component singleAnimationComponent: Component {
+        SingleAnimation{
 
         }
     }
@@ -194,30 +194,11 @@ Rectangle {
     onTargetStateMachineChanged: {
         if (targetStateMachine) {
             //var topState = stateComponent.createObject(stage, {"width": mainView.width, "height": mainView.height});
-            stateMachineItem = stateMachineItemComponent.createObject(stage);//, {"target": targetState});
+            stateMachineItem = stateTransitionComponent.createObject(stage);//, {"target": targetState});
             //stateMachineItem.zoomed = true;
             stateMachineItem.target = targetStateMachine;
             //stateMachineItem.width = Qt.binding(function(){return mainView.width});
             //stateMachineItem.height = Qt.binding(function(){return mainView.height});
-
-            // import signal list
-            var properties = Object.keys(targetStateMachine);
-            for (var i = signalIndex; i < properties.length; i++) {
-                console.log(properties[i] + "=" + targetStateMachine[properties[i]]);
-                signals.append({"name": properties[i], "propertyIndex": i});
-
-            }
-
-            stateMachineItem.signals = signals;
-
-            var transitionList = getTransitionList();
-
-            for (var i = 0; i < transitionList.length; i++) {
-                var transitionModel = transitionList[i];
-                var transitionItem = transitionComponent.createObject(transitionLayer);
-                transitionItem.model = transitionModel;
-                transitionItem.signalModel = getSignalModelByName(transitionModel.signalName)
-            }
 
             visible = true;
 
@@ -256,7 +237,7 @@ Rectangle {
 
     function createUniqueStateName() {
         // state + {number}
-        var prefix = "state";
+        var prefix = "anim";
         for (var i = 1; i < 1000; i++) {
             var name = prefix + i;
             if (findStateByName(name) === null) {
@@ -283,6 +264,20 @@ Rectangle {
         cursor.currentContent.insertChildAt(stateItem, cursor.currentIndex);
         cursor.currentIndex++;
 
+        stateItem.popup.start()
+        updateLayout();
+    }
+
+    function createSingleAnimation() {
+        var name = createUniqueStateName();
+
+        var stateItem = singleAnimationComponent.createObject(stage);
+        stateItem.label = name;
+        stateItem.type = "State";
+        cursor.currentContent.insertChildAt(stateItem, cursor.currentIndex);
+        cursor.currentIndex++;
+
+        stateItem.popup.start()
         updateLayout();
     }
 
@@ -380,14 +375,14 @@ Rectangle {
                     console.log("idx: ", idx, content.children.length);
 
                     if (content.children.length === 0) {
-                        localX = 5;
-                        localY = 5;
-                    } else if (idx === content.children.length) {
-                        localX = 5;
-                        localY = content.children[idx - 1].y + content.children[idx - 1].height;
+                        localX = 20;
+                        localY = 3;
+                    } else if (idx >= content.children.length) {
+                        localX = 20;
+                        localY = content.children[content.children.length - 1].y + content.children[content.children.length - 1].height + 2;
                     } else {
-                        localX = content.children[idx].x;
-                        localY = content.children[idx].y - 5;
+                        localX = 20;
+                        localY = content.children[idx].y - 6;
                     }
 
                     var helperPos = parent.mapFromItem(content, localX, localY);

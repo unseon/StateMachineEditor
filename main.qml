@@ -78,7 +78,7 @@ ApplicationWindow {
 
             FSM.State {
                 id: state1
-                objectName: "state1"
+                objectName: "anim1"
             }
         }
     }
@@ -140,6 +140,27 @@ ApplicationWindow {
 
                 onClicked: {
                     createStateAction.trigger();
+                }
+            }
+
+            ToolButton {
+                //action: createStateAction
+
+                Layout.fillWidth: false
+                Layout.preferredWidth: 50
+                Layout.preferredHeight: 50
+
+                Image {
+                    anchors.fill: parent
+                    source: "qrc:/images/images/icons/icon_create_state.svg"
+                    fillMode: Image.PreserveAspectFit
+
+                    sourceSize.width: width
+                    sourceSize.height: height
+                }
+
+                onClicked: {
+                    createSingleAnimation.trigger();
                 }
             }
 
@@ -209,9 +230,14 @@ ApplicationWindow {
 
     Action {
         id: createStateAction
-        text: qsTr("Insert State");
-        //iconSource: "qrc:/images/images/icons/icon_create_state.svg"
+        text: qsTr("Insert Group Animation");
         onTriggered: mainView.createState();
+    }
+
+    Action {
+        id: createSingleAnimation
+        text: qsTr("Insert Single Animation")
+        onTriggered: mainView.createSingleAnimation();
     }
 
     Action {

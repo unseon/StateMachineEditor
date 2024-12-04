@@ -2,9 +2,9 @@
     <qresource prefix="/">
         <file>main.qml</file>
         <file>StateMachineMainView.qml</file>
-        <file>StateItem.qml</file>
+        <file>GroupAnimation.qml</file>
         <file>StateSampleButton.qml</file>
-        <file>StateMachineItem.qml</file>
+        <file>TransitionItem.qml</file>
         <file>TransitionItem.qml</file>
         <file>HierarchyView.qml</file>
         <file>QmlExporter.js</file>
@@ -15,6 +15,9 @@
         <file>FFaniStateMachine/SignalTransition.qml</file>
         <file>FFaniStateMachine/qmldir</file>
         <file>FFaniStateMachine/FinalState.qml</file>
+        <file>SingleAnimation.qml</file>
+        <file>AnimationTrack.qml</file>
+        <file>StateTransitionItem.qml</file>
     </qresource>
     <qresource prefix="/images">
         <file>images/icons/minus.png</file>
