@@ -74,7 +74,24 @@ ApplicationWindow {
             children: [
                 {
                     type: "single",
-                    objectName: "anim1"
+                    objectName: "anim1",
+                    duration: 200
+                },
+                {
+                    type: "single",
+                    objectName: "anim2",
+                    duration: 400
+                },
+                {
+                    type: "group",
+                    objectName: "anim3",
+                    children: [
+                        {
+                            type: "single",
+                            objectName: "anim4",
+                            duration: 100
+                        }
+                    ]
                 }
             ]
         }
@@ -235,19 +252,14 @@ ApplicationWindow {
         }
     }
 
-    SplitView {
+    Item {
         anchors.fill: parent
-        orientation: Qt.Horizontal
 
         StateTransitionMainView {
             id: mainView
-            //targetState: sampleButton.stateMachine
-            //Layout.fillWidth: true
             color: "lightgray"
-
-            Component.onCompleted: {
-                //targetState = sampleButton.stateMachine;
-            }
+            width: parent.width
+            height: parent.height
         }
     }
 

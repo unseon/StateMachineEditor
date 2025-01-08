@@ -17,11 +17,11 @@ Rectangle {
     property alias helper: helper
     property alias mouseHelper: mouseHelper
     property alias cursor: cursor
-    property alias transitionLayer: transitionLayer
 
     property var stateTable: [] // [stateModel, stateItem]
 
     property var signals: ListModel{}
+    property var trackView: null
 
 
     Component.onCompleted: {
@@ -102,7 +102,7 @@ Rectangle {
     onTargetTransitionChanged: {
         if (targetTransition) {
             stateTransitionItem = stateTransitionComponent.createObject(stage);//, {"target": targetState});
-            stateTransitionItem.target = targetTransition;
+            stateTransitionItem.model = targetTransition;
             visible = true;
 
             updateLayout();
@@ -132,7 +132,7 @@ Rectangle {
     }
 
     function createGroupAnimation() {
-        var name = createUniqueName();
+        var name = "Group";
 
         var stateItem = groupAnimationComponent.createObject(stage);
         stateItem.label = name;
@@ -166,11 +166,7 @@ Rectangle {
 
     function updateLayout() {
         stateTransitionItem.updateLayout();
-
-        for (var i = 0; i < transitionLayer.children.length; i++) {
-            var transitionItem = transitionLayer.children[i];
-            transitionItem.update();
-        }
+        stateTransitionItem.track.update();
 
         cursor.update();
     }
@@ -201,14 +197,6 @@ Rectangle {
                         height = Qt.binding(function(){return scrollFrame.height});
                     }
                 }
-            }
-
-            Rectangle {
-                id: transitionLayer
-
-                opacity: mainView.state === "dragging" ? 0.2 : 1.0
-                color: "transparent"
-                anchors.fill: parent
             }
 
             Item {
@@ -386,19 +374,6 @@ Rectangle {
                     }
                 }
 
-                function transitionHitTest(mouseX, mouseY) {
-                    for (var i = 0; i < transitionLayer.children.length; i++) {
-                        var transitionItem = transitionLayer.children[i];
-                        var pos = mapToItem(transitionItem, mouseX, mouseY);
-                        //console.log(pos);
-                        var result = transitionItem.hitTest(pos.x, pos.y);
-                        //console.log("transtion hit : " + result);
-                        if (result) {
-                            return transitionItem;
-                        }
-                    }
-                }
-
                 onDoubleClicked: {
 
 
@@ -452,15 +427,8 @@ Rectangle {
                         var hit = getHit(mouse.x, mouse.y);
 
                         if (hit.objectName === "content") {
-                            var hitTransition = transitionHitTest(mouse.x, mouse.y);
-                            if (hitTransition) {
-                                console.log("transition hitted");
-                                mainView.unselectAll();
-                                mainView.selectedItem = hitTransition;
-                            } else  {
-                                updateCursor(mouse);
-                                mainView.unselectAll();
-                            }
+                            updateCursor(mouse);
+                            mainView.unselectAll();
                         } else if (hit.objectName === "headerRect") {
                             var stateItem = hit.parent;
                             mainView.unselectAll();
@@ -509,7 +477,7 @@ Rectangle {
                     console.log("released");
 
                     // drop to content if possible
-                    if (drag.active) {
+                    if (cursor.state == "dragging") {
                         dropToContent(focusedContent);
                         updateLayout();
                         cursor.state = "";
@@ -528,18 +496,6 @@ Rectangle {
                     } else {
                         var hit = getHit(mouse.x, mouse.y);
                         if (hit && hit.objectName === "content") {
-                            var hitTransition = transitionHitTest(mouse.x, mouse.y);
-                            if (hitTransition) {
-                                console.log("transition hitted");
-                                balloon.visible = true;
-                                balloon.x = mouse.x + 20;
-                                balloon.y = mouse.y + 20;
-                                if (hitTransition.signalModel) {
-                                    balloonText.text = hitTransition.signalModel.name;
-                                } else {
-                                    balloonText.text = "";
-                                }
-                            }
                         }
                     }
                 }

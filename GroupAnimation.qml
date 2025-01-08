@@ -1,7 +1,7 @@
 import QtQuick 2.5
 
 Rectangle {
-    id: stateItem
+    id: groupAnim
 
 //    width: content.width
 //    height: headerRect.height + content.height
@@ -25,9 +25,12 @@ Rectangle {
     property int headerHeight: floatingHeaderHeight
 
     property alias popup: popup
+
+    property alias track: track
+
     NumberAnimation {
         id: popup
-        target: stateItem
+        target: groupAnim
         property: "scale"
         from: 0
         to: 1.0
@@ -50,7 +53,7 @@ Rectangle {
 
     signal contentUpdated
 
-    property var target
+    property var model
 
     property string label: "untitled"
     property string type: "group"
@@ -105,17 +108,26 @@ Rectangle {
         }
     }
 
-    onTargetChanged: {
-        if (target === null) {
+    function rootAnimation() {
+        var iter = groupAnim
+        while(iter.parentAnimation) {
+            iter = iter.parentAnimation
+        }
+
+        return iter
+    }
+
+    onModelChanged: {
+        if (model === null) {
             return;
         }
 
         state = "init";
 
-        label = target.objectName;
-        type = typeName(target);
+        label = model.objectName;
+        type = typeName(model);
 
-        mainView.stateTable.push([target, stateItem]);
+        mainView.stateTable.push([model, groupAnim]);
 
         console.log(label + ":" + type);
 
@@ -125,16 +137,21 @@ Rectangle {
             child.destroy();
         }
 
-        var component = Qt.createComponent("GroupAnimation.qml");
+        if (model.children) {
+            for (var i = 0; i < model.children.length; i++) {
+                var child = model.children[i];
 
-        if (target.children) {
-            for (var i = 0; i < target.children.length; i++) {
-                var child = target.children[i];
-
+                let component = null
+                if (child.type == "single") {
+                    component = Qt.createComponent("SingleAnimation.qml");
+                } else {
+                    component = Qt.createComponent("GroupAnimation.qml");
+                }
                 var item = component.createObject(content);
-                item.target = target.children[i];
+                item.model = model.children[i];
             }
         }
+
 
         state = "";
     }
@@ -169,16 +186,16 @@ Rectangle {
                 width: parent.width
                 height: parent.height
 
-                color: labelEdit.readOnly ? "#CCEEAA" : "white"
-                border.width: stateItem.selected ? 3 : 1
-                border.color: stateItem.draggingFocused ? "#c9dfa0" : ( stateItem.selected ? "#40af30" : "#9Ab29A" )
+                color: groupAnim.isGroup ? "#DDFFCC" : "#CCEEAA"
+                border.width: groupAnim.selected ? 3 : 1
+                border.color: groupAnim.draggingFocused ? "#c9dfa0" : ( groupAnim.selected ? "#40af30" : "#9Ab29A" )
             }
 
             Rectangle {
                 id: labelRect
                 width: header.width
                 height: header.height
-                color: "transparent"
+                color: labelEdit.readOnly ? "transparent" : "white"
 
                 TextInput {
                     id: labelEdit
@@ -187,15 +204,15 @@ Rectangle {
                     anchors.leftMargin: 5
                     //horizontalAlignment: Text.AlignHCenter
                     verticalAlignment: Text.AlignVCenter
-                    text: stateItem.label
+                    text: groupAnim.label
 
                     onTextChanged: {
-                        stateItem.label = text;
+                        groupAnim.label = text;
                     }
 
                     onEditingFinished: {
-                        stateItem.forceActiveFocus();
-                        stateItem.state = "";
+                        groupAnim.forceActiveFocus();
+                        groupAnim.state = "";
                     }
                 }
             }
@@ -204,10 +221,10 @@ Rectangle {
         Rectangle {
             id: body
             objectName: "body"
-            visible: stateItem.isGroup
+            visible: groupAnim.isGroup
 
             y: header.height - 1
-            width: stateItem.width
+            width: groupAnim.width
             height: parent.height - header.height + 1
             color: "transparent"
 
@@ -217,9 +234,9 @@ Rectangle {
                 width: parent.width
                 height: parent.height
 
-                color: stateItem.draggingFocused ? "#e9ffe0" : ( stateItem.selected ? "#e9ffa0" : "#f9fff0")
+                color: groupAnim.draggingFocused ? "#e9ffe0" : ( groupAnim.selected ? "#e9ffa0" : "#f9fff0")
 
-                border.color: stateItem.draggingFocused ? "#c9dfa0" : ( stateItem.selected ? "#40af30" : "#9Ab29A" )
+                border.color: groupAnim.draggingFocused ? "#c9dfa0" : ( groupAnim.selected ? "#40af30" : "#9Ab29A" )
                 border.width: 1
             }
 
@@ -234,7 +251,7 @@ Rectangle {
         color: "transparent"
 
         width: parent.width
-        height: stateItem.headerHeight
+        height: groupAnim.headerHeight
 
         function insertChildAt(stateItem, idx) {
             // change the sequences by using js array
@@ -300,27 +317,8 @@ Rectangle {
                 }
             }
 
-            height = stateItem.isGroup ? Math.max(posY, 25) : 0;
-
-            //console.log(width, height);
-
-            //contentUpdated();
+            height = groupAnim.isGroup ? Math.max(posY, 25) : 0;
         }
-
-        // function calcIndex(posX) {
-        //    if (children.length === 0) {
-        //        return 0;
-        //    }
-
-        //    for (var i = 0; i < children.length; i++) {
-        //        var child = children[i];
-        //        if (posX < child.x + child.width) {
-        //            return i;
-        //        }
-        //    }
-
-        //    return children.length;
-        // }
 
         function calcIndex(posY) {
            if (children.length === 0) {
@@ -343,9 +341,18 @@ Rectangle {
         objectName: "headerRect"
 
         width: parent.width
-        height: stateItem.headerHeight
+        height: groupAnim.headerHeight
 
         color: "transparent"
+    }
+
+    AnimationTrack {
+        id: track
+        width: 500
+        height: parent.header.height
+        anchors.left: parent.right
+
+        anim: groupAnim
     }
 
 }
