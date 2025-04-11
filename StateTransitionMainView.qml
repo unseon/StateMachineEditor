@@ -23,10 +23,97 @@ Rectangle {
     property var signals: ListModel{}
     property var trackView: null
 
+    required property var document
+
+    onDocumentChanged: {
+        console.log("document", JSON.stringify(document))
+        if (document) {
+            generateFromJson(stage, document)
+            visible = true;
+
+            updateLayout();
+        } else {
+            console.log(document)
+            visible = false;
+        }
+    }
+
+    function generateFromJson(parentItem, doc) {
+//        console.log("generate", JSON.stringify(doc))
+        var item
+
+
+        if (doc.type == "Transition") {
+            item = stateTransitionComponent.createObject(parentItem)
+            stateTransitionItem = item
+        } else if (doc.type == "PropertyAnimation") {
+            item = singleAnimationComponent.createObject(parentItem)
+            item.targetItem = doc.target
+            item.targetProperties = doc.properties
+            item.duration = doc.duration
+        } else if (doc.type == "SequentialAnimation") {
+            item = groupAnimationComponent.createObject(parentItem)
+            item.isParallel = false
+        } else if (doc.type == "ParallelAnimation") {
+            item = groupAnimationComponent.createObject(parentItem)
+            item.isParallel = true
+        }
+
+        item.label = doc.id || ""
+
+
+        if (doc.children) {
+            for (var i = 0; i < doc.children.length; i++) {
+                generateFromJson(item.content, doc.children[i])
+            }
+        }
+    }
+
+    function exportToJson(fileUrl) {
+        console.log("save json to " + fileUrl);
+
+        var text = JSON.stringify(writeToJson(stage.children[0]), null, 4);
+        console.log(text)
+
+        fileIo.write(fileUrl, text);
+    }
+
+
+    function writeToJson(animItem) {
+        var result = {}
+
+        if (animItem instanceof SingleAnimation) {
+            result["type"] = "PropertyAnimation"
+            result["target"] = animItem.targetItem
+            result["properties"] = animItem.targetProperties
+            result["duration"] = animItem.duration
+        } else {
+            if (animItem instanceof StateTransitionItem) {
+                result["type"] = "Transition"
+            } else if (animItem instanceof GroupAnimation) {
+                if (animItem.isParallel) {
+                    result["type"] = "ParallelAnimation"
+                } else {
+                    result["type"] = "SequentialAnimation"
+                }
+            }
+
+            if (animItem.childAnimations.length) {
+                var childList = []
+                for (var i = 0; i < animItem.childAnimations.length; i++) {
+                    var childItem = animItem.childAnimations[i]
+                    childList.push(writeToJson(childItem))
+                }
+                result["children"] = childList
+            }
+        }
+
+        return result
+    }
+
 
     Component.onCompleted: {
         //console.log(JSON.stringify(this));
-
     }
 
     onSelectedItemChanged: {
@@ -46,10 +133,6 @@ Rectangle {
 
     function save(fileUrl) {
 
-    }
-
-    function exportToJson(fileUrl) {
-        JsonExporter.save(fileUrl, stateTransitionItem);
     }
 
     function addSelectionItem(stateItem) {
@@ -99,18 +182,6 @@ Rectangle {
         }
     }
 
-    onTargetTransitionChanged: {
-        if (targetTransition) {
-            stateTransitionItem = stateTransitionComponent.createObject(stage);//, {"target": targetState});
-            stateTransitionItem.model = targetTransition;
-            visible = true;
-
-            updateLayout();
-        } else {
-            visible = false;
-        }
-    }
-
     function createUniqueName() {
         // state + {number}
         var prefix = "anim";
@@ -126,8 +197,8 @@ Rectangle {
 
     function findStateTransitionByName(name) {
         var item = stateTransitionItem.findByName(name);
-        console.log("found name: " + name);
-        console.log("found name: " + (item?item.label:null));
+        //console.log("found name: " + name);
+        //console.log("found name: " + (item?item.label:null));
         return item;
     }
 
@@ -150,6 +221,7 @@ Rectangle {
         var stateItem = singleAnimationComponent.createObject(stage);
         stateItem.label = name;
         stateItem.type = "single";
+        stateItem.duration = 50
         cursor.currentContent.insertChildAt(stateItem, cursor.currentIndex);
         cursor.currentIndex++;
 
@@ -374,7 +446,7 @@ Rectangle {
                     }
                 }
 
-                onDoubleClicked: {
+                onDoubleClicked: (mouse) => {
 
 
                     if (mouse.button === Qt.LeftButton) {

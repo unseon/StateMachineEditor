@@ -2,6 +2,25 @@ function typeName(obj) {
     return obj.toString().split("(")[0].split("_")[0];
 }
 
+function save(url, transitionItem) {
+
+}
+
+function write(transitionItem, item, indent) {
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
 function save(url, stateMachineItem) {
     console.log("save json to " + url);
 

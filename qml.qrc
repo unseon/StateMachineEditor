@@ -2,12 +2,13 @@
     <qresource prefix="/">
         <file>main.qml</file>
         <file>StateTransitionMainView.qml</file>
-        <file>GroupAnimation.qml</file>
+        <file>BaseAnimation.qml</file>
         <file>HierarchyView.qml</file>
         <file>JsonExporter.js</file>
         <file>SingleAnimation.qml</file>
         <file>AnimationTrack.qml</file>
         <file>StateTransitionItem.qml</file>
+        <file>GroupAnimation.qml</file>
     </qresource>
     <qresource prefix="/images">
         <file>images/icons/minus.png</file>
@@ -20,5 +21,6 @@
         <file>images/icons/icon_delete_state.svg</file>
         <file>images/icons/icon_create_transition.svg</file>
         <file>images/icons/icon_delete_transition.svg</file>
+        <file>images/icons/icon_create_single_animation.svg</file>
     </qresource>
 </RCC>

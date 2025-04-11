@@ -1,5 +1,5 @@
-import QtQuick 2.5
-import QtQuick.Controls 2
+import QtQuick
+import QtQuick.Controls
 import QtQuick.Layouts 1.1
 import QtQuick.Window 2.0
 import QtQuick.Dialogs
@@ -14,8 +14,9 @@ ApplicationWindow {
 
     property string fileUrl
 
-    MenuBar {
+    menuBar: MenuBar {
         id: basicMenuBar
+        height: 20
         Menu {
             title: qsTr("File")
 
@@ -60,38 +61,28 @@ ApplicationWindow {
             MenuItem {
                 text: qsTr("&Export to JSON...")
                 onTriggered: {
-                    mainView.exportToJson("/Users/unseon/output.json");
+                    mainView.exportToJson("C:\\workspace\\output.json");
                 }
             }
 
         }
     }
 
+    property var document: {}
+
     function newFile() {
-        //stateTransitionContainer.stateTransition = stateTransitionComponent.createObject(stateTransitionContainer);
-        stateTransitionContainer.stateTransition = {
-            objectName: "transition0",
+        document = {
+            id: "transition",
+            type: "Transition",
+            from: "",
+            to: "",
             children: [
                 {
-                    type: "single",
-                    objectName: "anim1",
-                    duration: 200
-                },
-                {
-                    type: "single",
-                    objectName: "anim2",
-                    duration: 400
-                },
-                {
-                    type: "group",
-                    objectName: "anim3",
-                    children: [
-                        {
-                            type: "single",
-                            objectName: "anim4",
-                            duration: 100
-                        }
-                    ]
+                    type: "PropertyAnimation",
+                    id: "propAnim",
+                    target: "targetItem01",
+                    properties: "x",
+                    duration: "100"
                 }
             ]
         }
@@ -128,7 +119,7 @@ ApplicationWindow {
     }
 
     header: ToolBar {
-        visible: mainView.targetTransition
+        visible: mainView.visible
         RowLayout {
             anchors.fill: parent
 
@@ -162,7 +153,7 @@ ApplicationWindow {
 
                 Image {
                     anchors.fill: parent
-                    source: "qrc:/images/images/icons/icon_create_state.svg"
+                    source: "qrc:/images/images/icons/icon_create_single_animation.svg"
                     fillMode: Image.PreserveAspectFit
 
                     sourceSize.width: width
@@ -260,12 +251,14 @@ ApplicationWindow {
             color: "lightgray"
             width: parent.width
             height: parent.height
+
+            document: applicationWindow.document
         }
     }
 
     Rectangle {
         anchors.fill: parent
-        visible: !mainView.targetTransition
+        visible: !mainView.visible
 
         Button {
             text: "New File"

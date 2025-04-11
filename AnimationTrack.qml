@@ -9,10 +9,20 @@ Rectangle {
     property alias durationBar: durationBar
     property int duration: 100
     property int start: 50
+    property bool isParallel: false
     property var anim
+
+    onIsParallelChanged: {
+        track.anim.rootAnimation().track.update(0)
+    }
 
     onStartChanged: {
         barTail.x = track.start + track.duration
+    }
+
+    onDurationChanged: {
+        durationBar.width = duration
+        track.anim.rootAnimation().track.update(0)
     }
 
     Rectangle {
@@ -78,13 +88,24 @@ Rectangle {
     function update(startTime: int):int {
         start = startTime
         var endTime = startTime
+
         if (!anim.isGroup) {
             endTime += duration
         } else {
-            for (var i = 0; i < anim.content.children.length; i++) {
-                var childTrack = anim.content.children[i].track
-                console.log("childTrack", childTrack, anim.content.children[i])
-                endTime = childTrack.update(endTime)
+
+            if (track.isParallel) {
+                for (var i = 0; i < anim.content.children.length; i++) {
+                    var childTrack = anim.content.children[i].track
+                    //console.log("childTrack", childTrack, anim.content.children[i])
+                    endTime = Math.max(childTrack.update(startTime), endTime)
+                }
+
+            } else {
+                for (var i = 0; i < anim.content.children.length; i++) {
+                    var childTrack = anim.content.children[i].track
+                    //console.log("childTrack", childTrack, anim.content.children[i])
+                    endTime = childTrack.update(endTime)
+                }
             }
         }
         duration = endTime - startTime

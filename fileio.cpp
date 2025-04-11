@@ -15,9 +15,11 @@ void FileIo::write(const QString& fileUrl, const QString& data)
 {
     QUrl url(fileUrl);
     QFile file(url.path());
+    qDebug() << "isValid" << url.isValid() << "isWritable" << file.isWritable();
 
-    if (!file.open(QFile::WriteOnly | QFile::Truncate))
+    if (!file.open(QFile::WriteOnly | QIODevice::Text | QFile::Truncate)) {
          return;
+    }
 
     QTextStream out(&file);
     out << data;
